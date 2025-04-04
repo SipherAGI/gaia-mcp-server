@@ -7,7 +7,7 @@ import {
   GaiaSdStyle,
   GaiaUploadFile,
 } from './types';
-import { fetchImage } from '@/utils/fetch-image';
+import { fetchImage } from '../utils/fetch-image';
 import { imageSize } from 'image-size';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;

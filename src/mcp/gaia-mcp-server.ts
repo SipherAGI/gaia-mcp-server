@@ -2,7 +2,7 @@ import express from "express";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-
+import { tools } from "./tools";
 export type GaiaMcpServerConfig = {
   sse?: {
     port: number;
@@ -20,15 +20,14 @@ export class GaiaMcpServer {
     this.server = new McpServer({
       name: this.serverName,
       version: this.serverVersion,
-      capabilities: {
-        tools: {},
-      }
     });
 
     this.ssePort = cfg.sse?.port ?? 8000;
   }
 
   private init() {
+    console.log('[GAIA-MCP-SERVER] Initializing...');
+
     // Graceful shutdown
     process.on('SIGINT', async () => {
       console.log('[GAIA-MCP-SERVER] Shutting down...');
@@ -42,7 +41,9 @@ export class GaiaMcpServer {
   }
 
   private registerTools() {
-    // TODO: register tools
+    for (const tool of tools) {
+      this.server.tool(tool.name, tool.description, tool.parameters, tool.handler);
+    }
   }
 
   async startSSE() {
@@ -60,12 +61,13 @@ export class GaiaMcpServer {
       res.on('close', () => {
         delete transports[transport.sessionId];
       })
+
       await this.server.connect(transport);
     })
 
     // handle POST message request
     expressApp.post('/messages', async (req, res) => {
-      const { sessionId, message } = req.body;
+      const sessionId = req.query.sessionId as string;
       const transport = transports[sessionId];
 
       // if session not found, return 404
@@ -75,7 +77,7 @@ export class GaiaMcpServer {
       }
 
       // handle POST message request
-      await transport.handlePostMessage(req, res, message);
+      await transport.handlePostMessage(req, res);
     })
 
     // health check endpoint

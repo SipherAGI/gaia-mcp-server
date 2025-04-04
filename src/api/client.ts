@@ -12,9 +12,19 @@ import { imageSize } from 'image-size';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
 
+/**
+ * Client for interacting with the Gaia API
+ */
 export class ApiClient {
   private readonly httpClient: AxiosInstance;
 
+  /**
+   * Creates a new instance of the ApiClient
+   * 
+   * @param options - Configuration options for the client
+   * @param options.baseUrl - The base URL of the Gaia API
+   * @param options.apiKey - Optional API key for authentication
+   */
   constructor({ baseUrl, apiKey }: { baseUrl: string, apiKey?: string }) {
     this.httpClient = axios.create({
       baseURL: baseUrl,
@@ -27,6 +37,7 @@ export class ApiClient {
 
   /**
    * Uploads multiple images to the Gaia API
+   * 
    * @param imageUrls - The URLs of the images to upload
    * @param associatedResource - The resource type to associate the uploaded file with
    * @returns An array of uploaded file information
@@ -34,7 +45,7 @@ export class ApiClient {
   async uploadImages(
     imageUrls: string[],
     associatedResource: FileAssociatedResource = FileAssociatedResource.STYLE,
-  ) {
+  ): Promise<GaiaUploadFile[]> {
     const uploadedFiles: GaiaUploadFile[] = [];
 
     for (const imageUrl of imageUrls) {
@@ -132,6 +143,15 @@ export class ApiClient {
     return uploadedFiles;
   }
 
+  /**
+   * Creates a new style in the Gaia platform based on provided images
+   * 
+   * @param imageUrls - Array of image URLs to use for creating the style
+   * @param name - The name of the style to create
+   * @param description - Optional description for the style
+   * @returns The created style object
+   * @throws Will throw an error if the style creation fails
+   */
   async createStyle(
     imageUrls: string[],
     name: string,
@@ -160,6 +180,13 @@ export class ApiClient {
     }
   }
 
+  /**
+   * Executes a recipe task on the Gaia platform
+   * 
+   * @param request - The recipe task request containing recipe ID and parameters
+   * @returns The created recipe task object
+   * @throws Will throw an error if the recipe task execution fails
+   */
   async doRecipeTask(
     request: GaiaRecipeTaskRequest,
   ): Promise<GaiaRecipeTask> {

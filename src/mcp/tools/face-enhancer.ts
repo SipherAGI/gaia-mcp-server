@@ -1,16 +1,16 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { ApiClient } from "../../api/client";
 import { gaiaFaceEnhancerParamsSchema } from "../../api/types";
-import { createTool } from "../base";
+import { createTool, ToolContext } from "../base";
 
 export const faceEnhancerTool = createTool({
   name: "face-enhancer",
   description: "Enhance face's details in an existing image",
   parameters: gaiaFaceEnhancerParamsSchema,
-  handler: async (args) => {
+  handler: async (args, context?: ToolContext) => {
     const apiClient = new ApiClient({
-      baseUrl: process.env.GAIA_API_URL ?? "https://api.protogaia.com",
-      apiKey: process.env.GAIA_API_KEY,
+      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
+      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
     });
 
     try {

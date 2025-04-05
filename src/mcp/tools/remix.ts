@@ -1,16 +1,16 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { ApiClient } from "../../api/client";
-import { createTool } from "../base";
+import { createTool, ToolContext } from "../base";
 import { gaiaRemixParamsSchema } from "../../api/types";
 
 export const remixTool = createTool({
   name: "remix",
   description: "Create new variations of an existing image",
   parameters: gaiaRemixParamsSchema,
-  handler: async (args) => {
+  handler: async (args, context?: ToolContext) => {
     const apiClient = new ApiClient({
-      baseUrl: process.env.GAIA_API_URL ?? "https://api.protogaia.com",
-      apiKey: process.env.GAIA_API_KEY,
+      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
+      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
     });
 
     try {

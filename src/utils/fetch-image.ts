@@ -3,7 +3,7 @@ import axios from "axios";
 export async function fetchImage(url: string): Promise<string> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     // Use a regular axios instance without the Gaia API key for external image fetching
     const response = await axios.get(url, {

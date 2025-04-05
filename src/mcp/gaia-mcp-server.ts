@@ -8,6 +8,10 @@ export type GaiaMcpServerConfig = {
   sse?: {
     port: number;
   }
+  gaia: {
+    apiUrl: string;
+    apiKey: string;
+  }
 }
 
 export class GaiaMcpServer {
@@ -16,6 +20,12 @@ export class GaiaMcpServer {
 
   private server: McpServer;
   private ssePort: number;
+  private gaiaConfig: {
+    apiUrl: string;
+    apiKey: string;
+  }
+  // Store API keys by session ID
+  private sessionApiKeys: Map<string, string> = new Map();
 
   constructor(cfg: GaiaMcpServerConfig) {
     this.server = new McpServer({
@@ -24,6 +34,7 @@ export class GaiaMcpServer {
     });
 
     this.ssePort = cfg.sse?.port ?? 8000;
+    this.gaiaConfig = cfg.gaia;
   }
 
   private init() {
@@ -47,7 +58,21 @@ export class GaiaMcpServer {
         tool.name,
         tool.description,
         tool.parameters,
-        tool.handler
+        async (args: Record<string, any>, extra: { sessionId?: string }) => {
+          // Get session-specific API key or fall back to default
+          const apiKey = extra?.sessionId ? this.sessionApiKeys.get(extra.sessionId) : undefined;
+
+          // Create context with the session's API key or fall back to default
+          const context = {
+            apiConfig: {
+              url: this.gaiaConfig.apiUrl,
+              key: apiKey || this.gaiaConfig.apiKey
+            }
+          };
+
+          // Pass context to the tool handler
+          return await tool.handler(args, context);
+        }
       );
     }
   }
@@ -60,13 +85,28 @@ export class GaiaMcpServer {
     const expressApp = express();
 
     // handle SSE connection
-    expressApp.get('/sse', async (_, res) => {
+    expressApp.get('/sse', async (req, res) => {
+      // Get api key from query params
+      const apiKey = req.query.apiKey as string;
+      if (!apiKey) {
+        res.status(400).send('API key is required');
+        return;
+      }
+
       const transport = new SSEServerTransport('/messages', res);
-      transports[transport.sessionId] = transport;
+      const sessionId = transport.sessionId;
+
+      // Store API key for this session
+      this.sessionApiKeys.set(sessionId, apiKey);
+
+      // Store transport
+      transports[sessionId] = transport;
 
       res.on('close', () => {
-        delete transports[transport.sessionId];
-      })
+        // Clean up session data when connection closes
+        delete transports[sessionId];
+        this.sessionApiKeys.delete(sessionId);
+      });
 
       await this.server.connect(transport);
     })

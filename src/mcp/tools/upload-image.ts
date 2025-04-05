@@ -1,5 +1,5 @@
 import z from "zod";
-import { createTool } from "../base";
+import { createTool, ToolContext } from "../base";
 import { ApiClient } from "../../api/client";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
@@ -9,11 +9,11 @@ export const uploadImageTool = createTool({
   parameters: z.object({
     imageUrls: z.array(z.string()).describe("The URLs of the images to upload"),
   }),
-  handler: async (args) => {
+  handler: async (args, context?: ToolContext) => {
     const { imageUrls } = args;
     const apiClient = new ApiClient({
-      baseUrl: process.env.GAIA_API_URL ?? "https://api.protogaia.com",
-      apiKey: process.env.GAIA_API_KEY,
+      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
+      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
     });
 
     const uploadedFiles = await apiClient.uploadImages(imageUrls);

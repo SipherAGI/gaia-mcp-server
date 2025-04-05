@@ -8,6 +8,10 @@ export class Config {
         port: number;
       },
     },
+    gaia: {
+      apiUrl: string;
+      apiKey: string;
+    }
   }
 
   private constructor() {
@@ -19,6 +23,10 @@ export class Config {
         sse: {
           port: 3000,
         },
+      },
+      gaia: {
+        apiUrl: process.env.GAIA_API_URL ?? 'https://artventure-api.sipher.gg',
+        apiKey: process.env.GAIA_API_KEY ?? '',
       },
     };
   }
@@ -36,6 +44,17 @@ export class Config {
     }
   } {
     return this.config.mcpServer;
+  }
+
+  public get gaiaConfig(): {
+    apiUrl: string;
+    apiKey: string;
+  } {
+    return this.config.gaia;
+  }
+
+  public setGaiaApiKey(apiKey: string) {
+    this.config.gaia.apiKey = apiKey;
   }
 }
 

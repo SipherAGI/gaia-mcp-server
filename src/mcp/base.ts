@@ -3,13 +3,23 @@ import { ZodRawShape } from "zod";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 /**
+ * Tool context containing configuration required for execution
+ */
+export interface ToolContext {
+  apiConfig: {
+    url: string;
+    key: string;
+  };
+}
+
+/**
  * Schema definition for a tool
  */
 export const toolSchema = z.object({
   name: z.string(),
   description: z.string(),
   parameters: z.record(z.string(), z.any()),
-  handler: z.function().args(z.record(z.string(), z.any())).returns(z.any()),
+  handler: z.function().args(z.record(z.string(), z.any()), z.any()).returns(z.any()),
 });
 
 /**
@@ -37,7 +47,7 @@ export function createTool<P extends ZodRawShape, R>(
     name: string;
     description: string;
     parameters: z.ZodObject<P>;
-    handler: (args: z.infer<z.ZodObject<P>>) => R | Promise<R>;
+    handler: (args: z.infer<z.ZodObject<P>>, context?: ToolContext) => R | Promise<R>;
   }
 ): Tool {
   // Return the original Zod schema objects directly instead of converting them
@@ -46,8 +56,8 @@ export function createTool<P extends ZodRawShape, R>(
     name,
     description,
     parameters: parameters.shape,
-    handler: async (args: Record<string, any>) => {
-      const result = await handler(args as z.infer<z.ZodObject<P>>);
+    handler: async (args: Record<string, any>, context?: ToolContext) => {
+      const result = await handler(args as z.infer<z.ZodObject<P>>, context);
 
       // If result is already a CallToolResult, return it directly
       if (result && typeof result === 'object' && 'content' in result) {

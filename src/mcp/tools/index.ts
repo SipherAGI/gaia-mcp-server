@@ -1,8 +1,8 @@
-import { uploadImageTool } from "./upload-image";
-import { createStyleTool } from "./create-style";
-import { generateImageTool } from "./generate-image";
-import { remixTool } from "./remix";
-import { faceEnhancerTool } from "./face-enhancer";
+import { createStyleTool } from './create-style.js';
+import { faceEnhancerTool } from './face-enhancer.js';
+import { generateImageTool } from './generate-image.js';
+import { remixTool } from './remix.js';
+import { uploadImageTool } from './upload-image.js';
 
 export const tools = [
   uploadImageTool,

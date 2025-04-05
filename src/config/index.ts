@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 export class Config {
   private static instance: Config;
@@ -6,13 +6,13 @@ export class Config {
     mcpServer: {
       sse: {
         port: number;
-      },
-    },
+      };
+    };
     gaia: {
       apiUrl: string;
       apiKey: string;
-    }
-  }
+    };
+  };
 
   private constructor() {
     // init dotenv
@@ -41,7 +41,7 @@ export class Config {
   public get mcpServerConfig(): {
     sse: {
       port: number;
-    }
+    };
   } {
     return this.config.mcpServer;
   }

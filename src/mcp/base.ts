@@ -1,7 +1,7 @@
-import z from "zod";
-import { ZodRawShape } from "zod";
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { Logger } from "pino";
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { Logger } from 'pino';
+import z from 'zod';
+import { ZodRawShape } from 'zod';
 
 /**
  * Tool context containing configuration required for execution
@@ -31,7 +31,7 @@ export type Tool = z.infer<typeof toolSchema>;
 
 /**
  * Creates a tool with typed parameters and return value
- * 
+ *
  * @param options - Tool configuration options
  * @param options.name - Name of the tool
  * @param options.description - Description of what the tool does
@@ -39,19 +39,17 @@ export type Tool = z.infer<typeof toolSchema>;
  * @param options.handler - Function that implements the tool's behavior
  * @returns A properly typed Tool object
  */
-export function createTool<P extends ZodRawShape, R>(
-  {
-    name,
-    description,
-    parameters,
-    handler
-  }: {
-    name: string;
-    description: string;
-    parameters: z.ZodObject<P>;
-    handler: (args: z.infer<z.ZodObject<P>>, context?: ToolContext) => R | Promise<R>;
-  }
-): Tool {
+export function createTool<P extends ZodRawShape, R>({
+  name,
+  description,
+  parameters,
+  handler,
+}: {
+  name: string;
+  description: string;
+  parameters: z.ZodObject<P>;
+  handler: (args: z.infer<z.ZodObject<P>>, context?: ToolContext) => R | Promise<R>;
+}): Tool {
   // Return the original Zod schema objects directly instead of converting them
   // This matches how test-tool is registered
   return {
@@ -71,9 +69,9 @@ export function createTool<P extends ZodRawShape, R>(
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result)
-          }
-        ]
+            text: JSON.stringify(result),
+          },
+        ],
       };
 
       return callToolResult;

@@ -1,4 +1,4 @@
-import z from "zod"
+import z from 'zod';
 
 export enum FileAssociatedResource {
   USER_AVATAR = 'USER_AVATAR',
@@ -23,7 +23,7 @@ export const gaiaRecipeTaskStatus = [
   'FAILED',
   'CANCELED',
   'DRAFT',
-] as const
+] as const;
 
 export const gaiaRecipeType = [
   'normal',
@@ -33,16 +33,11 @@ export const gaiaRecipeType = [
   'describe',
   'turbo',
   'other',
-] as const
+] as const;
 
-export const gaiaQueueType = ['default', 'fast', 'flux1', 'dedicated'] as const
+export const gaiaQueueType = ['default', 'fast', 'flux1', 'dedicated'] as const;
 
-export const recipeIds = [
-  'image-generator-simple',
-  'remix',
-  'face-enhancer',
-  'upscaler',
-] as const
+export const recipeIds = ['image-generator-simple', 'remix', 'face-enhancer', 'upscaler'] as const;
 
 export const gaiaUploadFileSchema = z.object({
   id: z.string(),
@@ -54,7 +49,7 @@ export const gaiaUploadFileSchema = z.object({
   ownerUid: z.string(),
   createdAt: z.string(),
   uploaded: z.boolean(),
-})
+});
 
 export const gaiaInitUploadResponseSchema = z.object({
   key: z.string(),
@@ -62,7 +57,7 @@ export const gaiaInitUploadResponseSchema = z.object({
   uploadId: z.string(),
   uploadUrls: z.array(z.string()),
   file: gaiaUploadFileSchema,
-})
+});
 
 export const gaiaSdStyleCreatorSchema = z.object({
   uid: z.string(),
@@ -70,23 +65,23 @@ export const gaiaSdStyleCreatorSchema = z.object({
   email: z.string(),
   picture: z.string(),
   username: z.string(),
-})
+});
 
 export const gaiaSdStyleTagSchema = z.object({
   id: z.number(),
   name: z.string(),
-})
+});
 
 export const gaiaSdStyleWorkspaceSchema = z.object({
   id: z.string(),
   name: z.string(),
   picture: z.string(),
-})
+});
 
 export const gaiaSdStyleImageSchema = z.object({
   url: z.string(),
   weight: z.number(),
-})
+});
 
 export const gaiaSdStyleCapabilitiesSchema = z.object({
   canView: z.boolean(),
@@ -97,12 +92,12 @@ export const gaiaSdStyleCapabilitiesSchema = z.object({
   canShare: z.boolean(),
   canAddToLibrary: z.boolean(),
   canRemoveFromLibrary: z.boolean(),
-})
+});
 
 export const gaiaSdStyleMetricSchema = z.object({
   id: z.number(),
   favoriteCount: z.number(),
-})
+});
 
 export const gaiaSdStyleSchema = z.object({
   id: z.string(),
@@ -126,12 +121,12 @@ export const gaiaSdStyleSchema = z.object({
   favoritedByUser: z.boolean(),
   metric: gaiaSdStyleMetricSchema,
   createdAt: z.string(),
-})
+});
 
 export const gaiaRecipeTaskRequestSchema = z.object({
   recipeId: z.string(),
   params: z.record(z.string(), z.any()),
-})
+});
 
 export const gaiaImageSchema = z.object({
   createdAt: z.string(),
@@ -170,7 +165,7 @@ export const gaiaImageSchema = z.object({
   size: z.number().int(),
   fullMetadata: z.string(),
   url: z.string(),
-})
+});
 
 export const gaiaRecipeTaskSchema = z.object({
   createdAt: z.string(),
@@ -198,7 +193,7 @@ export const gaiaRecipeTaskSchema = z.object({
   resultImages: z.array(z.string()),
   executionDuration: z.number().int().optional(),
   queueType: z.enum(gaiaQueueType).default('default'),
-})
+});
 
 export const gaiaImageGeneratorSimpleParamsSchema = z.object({
   prompt: z.string(),
@@ -208,7 +203,7 @@ export const gaiaImageGeneratorSimpleParamsSchema = z.object({
   promptStyle: z.string().optional(),
   style: z.string().optional(),
   styleIntensity: z.number().int().optional(),
-})
+});
 
 export const gaiaRemixParamsSchema = z.object({
   inputImage: z
@@ -229,31 +224,37 @@ export const gaiaRemixParamsSchema = z.object({
     .max(8)
     .default(4)
     .describe('Number of images to generate. Minimum 1, maximum 8 images.'),
-})
+});
 
 export const gaiaFaceEnhancerParamsSchema = z.object({
   imageUrl: z
     .string()
-    .describe("The image URL to enhance. It must be GAIA's image url: contains `https://api.protogaia.com/` or `https://artventure-api.sipher.gg`"),
+    .describe(
+      "The image URL to enhance. It must be GAIA's image url: contains `https://api.protogaia.com/` or `https://artventure-api.sipher.gg`",
+    ),
   prompt: z.string().describe('Prompt for the enhancement'),
-})
+});
 
 export const gaiaImageGeneratedResponseSchema = z.object({
   success: z.boolean(),
   images: z.array(z.string()),
   error: z.string().optional(),
-})
+});
 
 export const gaiaGenerateImagesRequestSchema = z.object({
   recipeId: z.enum(recipeIds),
-  params: z.union([gaiaImageGeneratorSimpleParamsSchema, gaiaRemixParamsSchema, gaiaFaceEnhancerParamsSchema]),
-})
+  params: z.union([
+    gaiaImageGeneratorSimpleParamsSchema,
+    gaiaRemixParamsSchema,
+    gaiaFaceEnhancerParamsSchema,
+  ]),
+});
 
-export type GaiaUploadFile = z.infer<typeof gaiaUploadFileSchema>
-export type GaiaInitUploadResponse = z.infer<typeof gaiaInitUploadResponseSchema>
-export type GaiaSdStyle = z.infer<typeof gaiaSdStyleSchema>
-export type GaiaRecipeTaskRequest = z.infer<typeof gaiaRecipeTaskRequestSchema>
-export type GaiaImage = z.infer<typeof gaiaImageSchema>
-export type GaiaRecipeTask = z.infer<typeof gaiaRecipeTaskSchema>
-export type GaiaImagesResponse = z.infer<typeof gaiaImageGeneratedResponseSchema>
-export type GaiaGenerateImagesRequest = z.infer<typeof gaiaGenerateImagesRequestSchema>
+export type GaiaUploadFile = z.infer<typeof gaiaUploadFileSchema>;
+export type GaiaInitUploadResponse = z.infer<typeof gaiaInitUploadResponseSchema>;
+export type GaiaSdStyle = z.infer<typeof gaiaSdStyleSchema>;
+export type GaiaRecipeTaskRequest = z.infer<typeof gaiaRecipeTaskRequestSchema>;
+export type GaiaImage = z.infer<typeof gaiaImageSchema>;
+export type GaiaRecipeTask = z.infer<typeof gaiaRecipeTaskSchema>;
+export type GaiaImagesResponse = z.infer<typeof gaiaImageGeneratedResponseSchema>;
+export type GaiaGenerateImagesRequest = z.infer<typeof gaiaGenerateImagesRequestSchema>;

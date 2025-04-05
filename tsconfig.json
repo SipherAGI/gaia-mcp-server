@@ -20,7 +20,7 @@
     "strict": true,
     "target": "ES2022",
     "strictNullChecks": true,
-    "outDir": "./dist",
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*.ts"

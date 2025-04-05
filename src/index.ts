@@ -1,6 +1,6 @@
-import { GaiaMcpServer } from "./mcp/gaia-mcp-server";
-import config from "./config";
-import { logger } from "./utils/logger";
+import config from './config/index.js';
+import { GaiaMcpServer } from './mcp/gaia-mcp-server.js';
+import { logger } from './utils/logger.js';
 
 // Create server with logger
 const gaiaMcpServer = new GaiaMcpServer({
@@ -12,7 +12,7 @@ const gaiaMcpServer = new GaiaMcpServer({
 });
 
 // Start server with stdio transport
-gaiaMcpServer.start().catch((err) => {
+gaiaMcpServer.start().catch(err => {
   logger.error({ err }, 'Error starting server');
   process.exit(1);
 });

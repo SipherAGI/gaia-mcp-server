@@ -1,33 +1,34 @@
-import express from "express";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { tools } from "./tools";
-import pino from "pino";
-import pinoHttp from "pino-http";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import express from 'express';
+import { pino, Logger } from 'pino';
+import { pinoHttp } from 'pino-http';
+
+import { tools } from './tools/index.js';
 
 export type GaiaMcpServerConfig = {
   sse?: {
     port: number;
-  }
+  };
   gaia: {
     apiUrl: string;
     apiKey: string;
-  }
-  logger?: pino.Logger;
-}
+  };
+  logger?: Logger;
+};
 
 export class GaiaMcpServer {
-  private readonly serverName = "GaiaMcpServer";
-  private readonly serverVersion = "0.0.1";
+  private readonly serverName = 'GaiaMcpServer';
+  private readonly serverVersion = '0.0.1';
 
   private server: McpServer;
   private ssePort: number;
   private gaiaConfig: {
     apiUrl: string;
     apiKey: string;
-  }
-  private logger: pino.Logger;
+  };
+  private logger: Logger;
   // Store API keys by session ID
   private sessionApiKeys: Map<string, string> = new Map();
 
@@ -39,15 +40,17 @@ export class GaiaMcpServer {
 
     this.ssePort = cfg.sse?.port ?? 8000;
     this.gaiaConfig = cfg.gaia;
-    this.logger = cfg.logger || pino({
-      level: process.env.LOG_LEVEL || 'info',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true
-        }
-      }
-    });
+    this.logger =
+      cfg.logger ||
+      pino({
+        level: process.env.LOG_LEVEL || 'info',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+          },
+        },
+      });
   }
 
   private init() {
@@ -79,14 +82,14 @@ export class GaiaMcpServer {
           const context = {
             apiConfig: {
               url: this.gaiaConfig.apiUrl,
-              key: apiKey || this.gaiaConfig.apiKey
+              key: apiKey || this.gaiaConfig.apiKey,
             },
-            logger: this.logger.child({ tool: tool.name })
+            logger: this.logger.child({ tool: tool.name }),
           };
 
           // Pass context to the tool handler
           return await tool.handler(args, context);
-        }
+        },
       );
     }
   }
@@ -100,7 +103,7 @@ export class GaiaMcpServer {
 
     // Add pino-http middleware
     const httpLogger = pinoHttp({
-      logger: this.logger
+      logger: this.logger,
     });
     expressApp.use(httpLogger);
 
@@ -132,7 +135,7 @@ export class GaiaMcpServer {
       });
 
       await this.server.connect(transport);
-    })
+    });
 
     // handle POST message request
     expressApp.post('/messages', async (req, res) => {
@@ -148,17 +151,17 @@ export class GaiaMcpServer {
 
       // handle POST message request
       await transport.handlePostMessage(req, res);
-    })
+    });
 
     // health check endpoint
     expressApp.get('/health', (_, res) => {
       res.status(200).send('OK');
-    })
+    });
 
     // start SSE server
     expressApp.listen(this.ssePort, () => {
       this.logger.info(`SSE server started on port ${this.ssePort}`);
-    })
+    });
   }
 
   async start() {

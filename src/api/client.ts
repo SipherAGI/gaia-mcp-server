@@ -1,4 +1,6 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance } from 'axios';
+import { imageSize } from 'image-size';
+
 import {
   FileAssociatedResource,
   GaiaInitUploadResponse,
@@ -8,9 +10,8 @@ import {
   GaiaUploadFile,
   GaiaGenerateImagesRequest,
   GaiaImagesResponse,
-} from './types';
-import { fetchImage } from '../utils/fetch-image';
-import { imageSize } from 'image-size';
+} from './types.js';
+import { fetchImage } from '../utils/fetch-image.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
 
@@ -22,12 +23,12 @@ export class ApiClient {
 
   /**
    * Creates a new instance of the ApiClient
-   * 
+   *
    * @param options - Configuration options for the client
    * @param options.baseUrl - The base URL of the Gaia API
    * @param options.apiKey - Optional API key for authentication
    */
-  constructor({ baseUrl, apiKey }: { baseUrl: string, apiKey?: string }) {
+  constructor({ baseUrl, apiKey }: { baseUrl: string; apiKey?: string }) {
     this.httpClient = axios.create({
       baseURL: baseUrl,
     });
@@ -39,7 +40,7 @@ export class ApiClient {
 
   /**
    * Uploads multiple images to the Gaia API
-   * 
+   *
    * @param imageUrls - The URLs of the images to upload
    * @param associatedResource - The resource type to associate the uploaded file with
    * @returns An array of uploaded file information
@@ -86,14 +87,14 @@ export class ApiClient {
                 metadata: {
                   width: metadata.width,
                   height: metadata.height,
-                }
+                },
               },
               fileSize,
             ],
             associatedResource,
             chunkSize: MULTIPART_FILE_CHUNK,
-          }
-        )
+          },
+        );
 
         const uploadInfo = initResponse.data[0];
         if (!uploadInfo) {
@@ -101,28 +102,23 @@ export class ApiClient {
         }
 
         // Upload parts
-        const uploadPromises = uploadInfo.uploadUrls.map(
-          async (url, index) => {
-            const start = index * MULTIPART_FILE_CHUNK;
-            const end = Math.min(
-              start + MULTIPART_FILE_CHUNK,
-              imageBuffer.length,
-            );
-            const chunk = imageBuffer.slice(start, end);
-            const partNumber = index + 1;
+        const uploadPromises = uploadInfo.uploadUrls.map(async (url: string, index: number) => {
+          const start = index * MULTIPART_FILE_CHUNK;
+          const end = Math.min(start + MULTIPART_FILE_CHUNK, imageBuffer.length);
+          const chunk = imageBuffer.slice(start, end);
+          const partNumber = index + 1;
 
-            const res = await axios.put(url, chunk, {
-              headers: {
-                'Content-Type': 'application/octet-stream',
-              },
-            });
+          const res = await axios.put(url, chunk, {
+            headers: {
+              'Content-Type': 'application/octet-stream',
+            },
+          });
 
-            return {
-              eTag: res.headers['etag'],
-              partNumber,
-            };
-          },
-        )
+          return {
+            eTag: res.headers['etag'],
+            partNumber,
+          };
+        });
 
         const uploadResults = await Promise.all(uploadPromises);
 
@@ -147,36 +143,28 @@ export class ApiClient {
 
   /**
    * Creates a new style in the Gaia platform based on provided images
-   * 
+   *
    * @param imageUrls - Array of image URLs to use for creating the style
    * @param name - The name of the style to create
    * @param description - Optional description for the style
    * @returns The created style object
    * @throws Will throw an error if the style creation fails
    */
-  async createStyle(
-    imageUrls: string[],
-    name: string,
-    description?: string,
-  ): Promise<GaiaSdStyle> {
+  async createStyle(imageUrls: string[], name: string, description?: string): Promise<GaiaSdStyle> {
     try {
-      const res = await this.httpClient.post<GaiaSdStyle>(
-        "/api/sd-styles",
-        {
-          images: imageUrls.map((url) => ({
-            url,
-            weight: 0.5,
-          })),
-          name,
-          description,
-          isDraft: false, // Public style
-        },
-      );
+      const res = await this.httpClient.post<GaiaSdStyle>('/api/sd-styles', {
+        images: imageUrls.map(url => ({
+          url,
+          weight: 0.5,
+        })),
+        name,
+        description,
+        isDraft: false, // Public style
+      });
 
       return res.data;
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown error occurred';
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
 
       throw new Error(`Failed to create style: ${message}`);
     }
@@ -184,17 +172,37 @@ export class ApiClient {
 
   /**
    * Executes a recipe task on the Gaia platform
-   * 
+   *
    * @param request - The recipe task request containing recipe ID and parameters
    * @returns The created recipe task object
    * @throws Will throw an error if the recipe task execution fails
    */
-  async doRecipeTask(
-    request: GaiaRecipeTaskRequest,
-  ): Promise<GaiaRecipeTask> {
+  async doRecipeTask(request: GaiaRecipeTaskRequest): Promise<GaiaRecipeTask> {
     try {
-      const res = await this.httpClient.post<GaiaRecipeTask>(
-        "/api/recipe/tasks/",
+      const res = await this.httpClient.post<GaiaRecipeTask>('/api/recipe/tasks/', {
+        recipeId: request.recipeId,
+        params: request.params,
+      });
+
+      return res.data;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+
+      throw new Error(`Failed to do recipe task: ${message}`);
+    }
+  }
+
+  /**
+   * Generates images using a recipe task on the Gaia platform
+   *
+   * @param request - The recipe task request containing recipe ID and parameters
+   * @returns The generated images response
+   * @throws Will throw an error if the image generation fails
+   */
+  async generateImages(request: GaiaGenerateImagesRequest) {
+    try {
+      const res = await this.httpClient.post<GaiaImagesResponse>(
+        '/api/recipe/agi-tasks/create-task',
         {
           recipeId: request.recipeId,
           params: request.params,
@@ -203,34 +211,7 @@ export class ApiClient {
 
       return res.data;
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown error occurred';
-
-      throw new Error(`Failed to do recipe task: ${message}`);
-    }
-  }
-
-  /**
-   * Generates images using a recipe task on the Gaia platform
-   * 
-   * @param request - The recipe task request containing recipe ID and parameters
-   * @returns The generated images response
-   * @throws Will throw an error if the image generation fails
-   */
-  async generateImages(request: GaiaGenerateImagesRequest) {
-    try {
-      const res = await this.httpClient.post<GaiaImagesResponse>(
-        "/api/recipe/agi-tasks/create-task",
-        {
-          recipeId: request.recipeId,
-          params: request.params,
-        }
-      )
-
-      return res.data;
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown error occurred';
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
 
       throw new Error(`Failed to generate images: ${message}`);
     }

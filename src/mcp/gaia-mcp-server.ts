@@ -3,6 +3,8 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { tools } from "./tools";
+import pino from "pino";
+import pinoHttp from "pino-http";
 
 export type GaiaMcpServerConfig = {
   sse?: {
@@ -12,6 +14,7 @@ export type GaiaMcpServerConfig = {
     apiUrl: string;
     apiKey: string;
   }
+  logger?: pino.Logger;
 }
 
 export class GaiaMcpServer {
@@ -24,6 +27,7 @@ export class GaiaMcpServer {
     apiUrl: string;
     apiKey: string;
   }
+  private logger: pino.Logger;
   // Store API keys by session ID
   private sessionApiKeys: Map<string, string> = new Map();
 
@@ -35,16 +39,25 @@ export class GaiaMcpServer {
 
     this.ssePort = cfg.sse?.port ?? 8000;
     this.gaiaConfig = cfg.gaia;
+    this.logger = cfg.logger || pino({
+      level: process.env.LOG_LEVEL || 'info',
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true
+        }
+      }
+    });
   }
 
   private init() {
-    console.log('[GAIA-MCP-SERVER] Initializing...');
+    this.logger.info('Initializing...');
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      console.log('[GAIA-MCP-SERVER] Shutting down...');
+      this.logger.info('Shutting down...');
       await this.server.close();
-      console.log('[GAIA-MCP-SERVER] Server closed');
+      this.logger.info('Server closed');
       process.exit(0);
     });
 
@@ -67,7 +80,8 @@ export class GaiaMcpServer {
             apiConfig: {
               url: this.gaiaConfig.apiUrl,
               key: apiKey || this.gaiaConfig.apiKey
-            }
+            },
+            logger: this.logger.child({ tool: tool.name })
           };
 
           // Pass context to the tool handler
@@ -84,6 +98,12 @@ export class GaiaMcpServer {
     const transports: { [sessionId: string]: SSEServerTransport } = {};
     const expressApp = express();
 
+    // Add pino-http middleware
+    const httpLogger = pinoHttp({
+      logger: this.logger
+    });
+    expressApp.use(httpLogger);
+
     // handle SSE connection
     expressApp.get('/sse', async (req, res) => {
       // Get api key from query params
@@ -96,6 +116,8 @@ export class GaiaMcpServer {
       const transport = new SSEServerTransport('/messages', res);
       const sessionId = transport.sessionId;
 
+      this.logger.info({ sessionId }, 'New SSE connection established');
+
       // Store API key for this session
       this.sessionApiKeys.set(sessionId, apiKey);
 
@@ -106,6 +128,7 @@ export class GaiaMcpServer {
         // Clean up session data when connection closes
         delete transports[sessionId];
         this.sessionApiKeys.delete(sessionId);
+        this.logger.info({ sessionId }, 'SSE connection closed');
       });
 
       await this.server.connect(transport);
@@ -118,6 +141,7 @@ export class GaiaMcpServer {
 
       // if session not found, return 404
       if (!transport) {
+        this.logger.warn({ sessionId }, 'Session not found for message');
         res.status(404).send('Session not found');
         return;
       }
@@ -133,7 +157,7 @@ export class GaiaMcpServer {
 
     // start SSE server
     expressApp.listen(this.ssePort, () => {
-      console.log(`[GAIA-MCP-SERVER] SSE server started on port ${this.ssePort}`);
+      this.logger.info(`SSE server started on port ${this.ssePort}`);
     })
   }
 
@@ -142,6 +166,7 @@ export class GaiaMcpServer {
 
     // STDIO transport
     const transport = new StdioServerTransport();
+    this.logger.info('Starting server with STDIO transport');
     await this.server.connect(transport);
   }
 }

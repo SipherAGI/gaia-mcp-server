@@ -11,32 +11,60 @@ export const uploadImageTool = createTool({
   }),
   handler: async (args, context?: ToolContext) => {
     const { imageUrls } = args;
+
+    // Get logger from context or fallback to console
+    const logger = context?.logger?.child({ tool: "upload-image" }) || console;
+
+    logger.info("Starting image upload", { count: imageUrls.length });
+
     const apiClient = new ApiClient({
       baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
       apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
     });
 
-    const uploadedFiles = await apiClient.uploadImages(imageUrls);
-    const imageResultParts: CallToolResult["content"] = [];
+    try {
+      logger.info("Uploading images to Gaia API", { urls: imageUrls });
 
-    for (const file of uploadedFiles) {
-      imageResultParts.push({
-        type: "image",
-        data: file.url ?? "",
-        mimeType: "image/png",
-      });
+      const uploadedFiles = await apiClient.uploadImages(imageUrls);
+
+      logger.info(`Successfully uploaded ${uploadedFiles.length} images`);
+
+      const imageResultParts: CallToolResult["content"] = [];
+
+      for (const file of uploadedFiles) {
+        imageResultParts.push({
+          type: "image",
+          data: file.url ?? "",
+          mimeType: "image/png",
+        });
+      }
+
+      const result: CallToolResult = {
+        content: [
+          {
+            type: "text",
+            text: `Uploaded ${uploadedFiles.length} images`,
+          },
+          ...imageResultParts,
+        ]
+      };
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Unknown error occurred";
+
+      logger.error({ error }, `Failed to upload images: ${errorMessage}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to upload images: ${errorMessage}`
+          }
+        ]
+      };
     }
-
-    const result: CallToolResult = {
-      content: [
-        {
-          type: "text",
-          text: `Uploaded ${uploadedFiles.length} images`,
-        },
-        ...imageResultParts,
-      ]
-    };
-
-    return result;
   }
 });

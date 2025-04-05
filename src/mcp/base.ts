@@ -1,6 +1,7 @@
 import z from "zod";
 import { ZodRawShape } from "zod";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { Logger } from "pino";
 
 /**
  * Tool context containing configuration required for execution
@@ -10,6 +11,7 @@ export interface ToolContext {
     url: string;
     key: string;
   };
+  logger?: Logger;
 }
 
 /**

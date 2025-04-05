@@ -13,6 +13,12 @@ export const createStyleTool = createTool({
   }),
   handler: async (args, context?: ToolContext) => {
     const { imageUrls, name, description } = args;
+
+    // Get logger from context or fallback to console
+    const logger = context?.logger?.child({ tool: "create-style" }) || console;
+
+    logger.info("Starting style creation", { styleName: name, imageCount: imageUrls.length });
+
     const apiClient = new ApiClient({
       baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
       apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
@@ -20,21 +26,31 @@ export const createStyleTool = createTool({
 
     try {
       // First upload the images
+      logger.info("Uploading images for style creation", { count: imageUrls.length });
       const uploadedFiles = await apiClient.uploadImages(imageUrls);
       const uploadedImageUrls = uploadedFiles
         .filter(file => file.url)
         .map(file => file.url as string);
 
       if (uploadedImageUrls.length === 0) {
+        logger.error("No images were successfully uploaded");
         throw new Error("No images were successfully uploaded");
       }
 
+      logger.info("Successfully uploaded images", {
+        uploaded: uploadedImageUrls.length,
+        total: imageUrls.length
+      });
+
       // Create the style using the uploaded images
+      logger.info("Creating style with uploaded images", { styleName: name });
       const style = await apiClient.createStyle(
         uploadedImageUrls,
         name,
         description
       );
+
+      logger.info("Style created successfully", { styleId: style.id, styleName: name });
 
       const result: CallToolResult = {
         content: [
@@ -61,6 +77,8 @@ ${JSON.stringify(style, null, 2)}
       const errorMessage = error instanceof Error
         ? error.message
         : "Unknown error occurred";
+
+      logger.error({ error }, `Failed to create style: ${errorMessage}`);
 
       return {
         content: [

@@ -8,16 +8,25 @@ export const generateImageTool = createTool({
   description: "Generate images with Protogaia",
   parameters: gaiaImageGeneratorSimpleParamsSchema,
   handler: async (args, context?: ToolContext) => {
+    // Get logger from context or fallback to console
+    const logger = context?.logger?.child({ tool: "generate-image" }) || console;
+
+    logger.info("Starting image generation", { args: JSON.stringify(args) });
+
     const apiClient = new ApiClient({
       baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? "https://api.protogaia.com",
       apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
     });
 
     try {
+      logger.info("Calling Gaia API to generate images");
+
       const imageResponse = await apiClient.generateImages({
         recipeId: "image-generator-simple",
         params: args,
       });
+
+      logger.info(`Successfully generated ${imageResponse.images.length} images`);
 
       const result: CallToolResult = {
         content: [
@@ -37,6 +46,8 @@ export const generateImageTool = createTool({
       const errorMessage = error instanceof Error
         ? error.message
         : "Unknown error occurred";
+
+      logger.error({ error }, `Failed to generate images: ${errorMessage}`);
 
       return {
         content: [

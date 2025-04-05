@@ -1,5 +1,6 @@
 import config from "./config";
 import { GaiaMcpServer } from "./mcp/gaia-mcp-server";
+import { logger } from "./utils/logger";
 
 const gaiaMcpServer = new GaiaMcpServer({
   sse: {
@@ -8,10 +9,11 @@ const gaiaMcpServer = new GaiaMcpServer({
   gaia: {
     apiUrl: config.gaiaConfig.apiUrl,
     apiKey: config.gaiaConfig.apiKey,
-  }
+  },
+  logger: logger.child({ component: 'GaiaMcpServer', mode: 'SSE' }),
 });
 
 gaiaMcpServer.startSSE().catch((err) => {
-  console.error('[SSE] Error starting SSE server: ', err);
+  logger.error({ err }, 'Error starting SSE server');
   process.exit(1);
 });

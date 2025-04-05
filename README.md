@@ -7,6 +7,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Logging](#logging)
 - [Usage](#usage)
   - [Using Stdio Method](#using-stdio-method)
   - [Using SSE Method](#using-sse-method)
@@ -50,6 +51,93 @@ MCP_SERVER_SSE_PORT=3000
 # Gaia API
 GAIA_API_URL='https://artventure-api.sipher.gg'
 GAIA_API_KEY='your-api-key-here'
+
+# Logging
+LOG_LEVEL='info' # debug, info, warn, error, fatal
+```
+
+## Logging
+
+The Gaia MCP Server uses [Pino](https://getpino.io/) for logging, providing structured JSON logs with customizable log levels.
+
+### Log Levels
+
+The server supports the following log levels, in order of verbosity:
+
+- `debug`: Detailed debugging information
+- `info`: General operational information (default)
+- `warn`: Warning conditions that should be addressed
+- `error`: Error conditions that require attention
+- `fatal`: Critical conditions that require immediate action
+
+You can set the log level via the `LOG_LEVEL` environment variable in your `.env` file.
+
+### Centralized Logger
+
+The application uses a centralized logger module located at `src/utils/logger.ts`, which provides:
+
+1. A default logger instance that can be imported anywhere in the application
+2. A `createLogger` function for creating custom loggers
+
+```typescript
+// Import the default logger
+import { logger } from "./utils/logger";
+
+// Use the logger
+logger.info("Application started");
+
+// Create a custom logger
+import { createLogger } from "./utils/logger";
+const customLogger = createLogger({
+  name: "my-component",
+  level: "debug",
+});
+```
+
+### Log Format
+
+Logs are formatted using `pino-pretty` in development mode for better readability. In production, you can pipe the JSON output to any log management system that supports JSON-formatted logs.
+
+### Custom Logger Implementation
+
+The server supports custom logger injection. When creating a `GaiaMcpServer` instance, you can provide your own Pino logger:
+
+```typescript
+import { createLogger } from "./utils/logger";
+import { GaiaMcpServer } from "./mcp/gaia-mcp-server";
+
+// Create custom logger
+const logger = createLogger({
+  name: "my-app",
+  level: "debug",
+});
+
+// Pass custom logger to server
+const server = new GaiaMcpServer({
+  gaia: {
+    apiUrl: process.env.GAIA_API_URL,
+    apiKey: process.env.GAIA_API_KEY,
+  },
+  logger: logger.child({ component: "GaiaMcpServer" }),
+});
+```
+
+### Log Context in Tools
+
+Tool handlers receive a logger instance through the context parameter, which can be used for tool-specific logging:
+
+```typescript
+// In a tool handler
+handler: async (args, context) => {
+  // Get logger from context or fallback to console
+  const logger = context?.logger?.child({ tool: "my-tool" }) || console;
+
+  logger.info("Starting tool operation", { args });
+
+  // Tool implementation...
+
+  logger.info("Tool operation completed");
+};
 ```
 
 ## Usage

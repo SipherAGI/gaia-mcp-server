@@ -12,6 +12,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
   - [Using SSE Method](#using-sse-method)
 - [Understanding MCP](#understanding-mcp)
 - [API Endpoints](#api-endpoints)
+- [Supported Tools](#supported-tools)
 - [Development](#development)
 
 ## Introduction
@@ -149,6 +150,18 @@ When running in SSE mode, the following endpoints are available:
 - `GET /sse`: Establishes an SSE connection
 - `POST /messages`: Sends messages to the server
 - `GET /health`: Health check endpoint
+
+## Supported Tools
+
+The Gaia MCP Server provides several AI image generation and manipulation tools that can be called by LLMs:
+
+- **upload-image**: Upload images to the Gaia platform from URLs
+- **create-style**: Create a new style in the Gaia platform using provided images
+- **generate-image**: Generate images with Protogaia based on text prompts
+- **remix**: Create new variations of an existing image
+- **face-enhancer**: Enhance face details in an existing image
+
+Each tool is registered with the MCP server and can be invoked according to the Model Context Protocol standard.
 
 ## Development
 

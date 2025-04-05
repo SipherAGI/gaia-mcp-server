@@ -254,6 +254,15 @@ Each tool is registered with the MCP server and can be invoked according to the 
 
 ## Development
 
+For detailed development instructions, please refer to the [DEVELOPMENT.md](DEVELOPMENT.md) document.
+
+This document includes:
+
+- Available development scripts with watch mode
+- Development workflow options
+- Production build instructions
+- Configuration details
+
 To register new tools for the MCP server, edit the `registerTools` method in `src/mcp/gaia-mcp-server.ts`.
 
 To add new functionality:

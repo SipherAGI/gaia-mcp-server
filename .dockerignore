@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+pnpm-debug.log
+
+# Build artifacts
+dist
+
+# Development files
+.vscode
+.cursorrules
+
+# Environment variables
+.env
+.env.*
+
+# Misc
+README.md
+**/.DS_Store
+**/Thumbs.db 

@@ -15,6 +15,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 - [API Endpoints](#api-endpoints)
 - [Supported Tools](#supported-tools)
 - [Development](#development)
+- [Docker Deployment](#docker-deployment)
 
 ## Introduction
 
@@ -260,6 +261,64 @@ To add new functionality:
 1. Create a new tool implementation
 2. Register it in the server
 3. Rebuild and test
+
+## Docker Deployment
+
+### Building the Docker Image
+
+To build the Docker image for the SSE server:
+
+```bash
+docker build -t gaia-mcp-sse .
+```
+
+### Running with Docker
+
+To run the SSE server using Docker:
+
+```bash
+docker run -p 3000:3000 -e MCP_SERVER_SSE_PORT=3000 -e GAIA_API_URL=https://your-api-url -e GAIA_API_KEY=your-api-key gaia-mcp-sse
+```
+
+### Using Docker Compose
+
+For easier local testing and development, you can use Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This will build and start the SSE server with the environment variables specified in your `.env` file or using default values.
+
+### Environment Variables
+
+- `MCP_SERVER_SSE_PORT`: Port for the SSE server (default: 3000)
+- `GAIA_API_URL`: URL for the Gaia API (default: https://artventure-api.sipher.gg)
+- `GAIA_API_KEY`: API key for the Gaia API
+
+### Cloud Deployment
+
+When deploying to a cloud provider:
+
+1. Build the Docker image locally or set up CI/CD to build it
+2. Push the image to a container registry (Docker Hub, AWS ECR, Google Container Registry, etc.)
+3. Deploy the container to your cloud platform of choice (AWS ECS, Google Cloud Run, Azure Container Instances, etc.)
+4. Set the required environment variables in your cloud platform's configuration
+
+Example for AWS ECS:
+
+```bash
+# Build the image
+docker build -t gaia-mcp-sse .
+
+# Tag the image for ECR
+docker tag gaia-mcp-sse:latest your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-sse:latest
+
+# Push to ECR
+docker push your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-sse:latest
+```
+
+Then deploy using AWS ECS console or CLI, ensuring to set the environment variables.
 
 ### License
 

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  gaia-mcp-sse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${MCP_SERVER_SSE_PORT:-3000}:${MCP_SERVER_SSE_PORT:-3000}"
+    environment:
+      - MCP_SERVER_SSE_PORT=${MCP_SERVER_SSE_PORT:-3000}
+      - GAIA_API_URL=${GAIA_API_URL:-https://artventure-api.sipher.gg}
+      - GAIA_API_KEY=${GAIA_API_KEY:-}
+    restart: unless-stopped 

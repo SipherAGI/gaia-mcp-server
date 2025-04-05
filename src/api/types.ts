@@ -214,7 +214,7 @@ export const gaiaRemixParamsSchema = z.object({
   inputImage: z
     .string()
     .describe(
-      "The image URL to remix. It must be GAIA's image url. You can use enhanceHandTool or enhanceFaceTool to enhance the image before remixing.",
+      "The image URL to remix. It must be GAIA's image url: contains `https://api.protogaia.com/` or `https://artventure-api.sipher.gg`",
     ),
   variationControl: z
     .enum(['subtle', 'medium', 'strong'])

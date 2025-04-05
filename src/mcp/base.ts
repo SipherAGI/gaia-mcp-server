@@ -40,22 +40,12 @@ export function createTool<P extends ZodRawShape, R>(
     handler: (args: z.infer<z.ZodObject<P>>) => R | Promise<R>;
   }
 ): Tool {
-  // Extract parameter descriptions and types for MCP
-  const parameterShape = parameters.shape;
-  const mcpParameters: Record<string, any> = {};
-
-  // Convert Zod schema to MCP-compatible format
-  for (const [key, zodType] of Object.entries(parameterShape)) {
-    mcpParameters[key] = {
-      type: getTypeFromZod(zodType),
-      description: getDescriptionFromZod(zodType)
-    };
-  }
-
+  // Return the original Zod schema objects directly instead of converting them
+  // This matches how test-tool is registered
   return {
     name,
     description,
-    parameters: mcpParameters,
+    parameters: parameters.shape,
     handler: async (args: Record<string, any>) => {
       const result = await handler(args as z.infer<z.ZodObject<P>>);
 
@@ -77,23 +67,4 @@ export function createTool<P extends ZodRawShape, R>(
       return callToolResult;
     },
   };
-}
-
-/**
- * Helper function to extract description from a Zod schema
- */
-function getDescriptionFromZod(zodType: z.ZodTypeAny): string {
-  return (zodType as any)._def?.description || '';
-}
-
-/**
- * Helper function to get the JSON schema type from a Zod schema
- */
-function getTypeFromZod(zodType: z.ZodTypeAny): string {
-  if (zodType instanceof z.ZodString) return 'string';
-  if (zodType instanceof z.ZodNumber) return 'number';
-  if (zodType instanceof z.ZodBoolean) return 'boolean';
-  if (zodType instanceof z.ZodArray) return 'array';
-  if (zodType instanceof z.ZodObject) return 'object';
-  return 'string'; // Default to string for unknown types
 }

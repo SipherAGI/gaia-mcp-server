@@ -3,6 +3,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { tools } from "./tools";
+
 export type GaiaMcpServerConfig = {
   sse?: {
     port: number;
@@ -42,7 +43,12 @@ export class GaiaMcpServer {
 
   private registerTools() {
     for (const tool of tools) {
-      this.server.tool(tool.name, tool.description, tool.parameters, tool.handler);
+      this.server.tool(
+        tool.name,
+        tool.description,
+        tool.parameters,
+        tool.handler
+      );
     }
   }
 

@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "zod"
 
 export enum FileAssociatedResource {
   USER_AVATAR = 'USER_AVATAR',
@@ -23,7 +23,7 @@ export const gaiaRecipeTaskStatus = [
   'FAILED',
   'CANCELED',
   'DRAFT',
-] as const;
+] as const
 
 export const gaiaRecipeType = [
   'normal',
@@ -33,9 +33,16 @@ export const gaiaRecipeType = [
   'describe',
   'turbo',
   'other',
-] as const;
+] as const
 
-export const gaiaQueueType = ['default', 'fast', 'flux1', 'dedicated'] as const;
+export const gaiaQueueType = ['default', 'fast', 'flux1', 'dedicated'] as const
+
+export const recipeIds = [
+  'image-generator-simple',
+  'remix',
+  'face-enhancer',
+  'upscaler',
+] as const
 
 export const gaiaUploadFileSchema = z.object({
   id: z.string(),
@@ -163,7 +170,7 @@ export const gaiaImageSchema = z.object({
   size: z.number().int(),
   fullMetadata: z.string(),
   url: z.string(),
-});
+})
 
 export const gaiaRecipeTaskSchema = z.object({
   createdAt: z.string(),
@@ -191,11 +198,62 @@ export const gaiaRecipeTaskSchema = z.object({
   resultImages: z.array(z.string()),
   executionDuration: z.number().int().optional(),
   queueType: z.enum(gaiaQueueType).default('default'),
-});
+})
 
-export type GaiaUploadFile = z.infer<typeof gaiaUploadFileSchema>;
-export type GaiaInitUploadResponse = z.infer<typeof gaiaInitUploadResponseSchema>;
-export type GaiaSdStyle = z.infer<typeof gaiaSdStyleSchema>;
-export type GaiaRecipeTaskRequest = z.infer<typeof gaiaRecipeTaskRequestSchema>;
-export type GaiaImage = z.infer<typeof gaiaImageSchema>;
-export type GaiaRecipeTask = z.infer<typeof gaiaRecipeTaskSchema>;
+export const gaiaImageGeneratorSimpleParamsSchema = z.object({
+  prompt: z.string(),
+  seed: z.number().int().optional(),
+  numberOfImages: z.number().int().optional(),
+  aspectRatio: z.string().optional(),
+  promptStyle: z.string().optional(),
+  style: z.string().optional(),
+  styleIntensity: z.number().int().optional(),
+})
+
+export const gaiaRemixParamsSchema = z.object({
+  inputImage: z
+    .string()
+    .describe(
+      "The image URL to remix. It must be GAIA's image url. You can use enhanceHandTool or enhanceFaceTool to enhance the image before remixing.",
+    ),
+  variationControl: z
+    .enum(['subtle', 'medium', 'strong'])
+    .optional()
+    .default('subtle')
+    .describe(
+      'The variation control of the remix. One of the following: "subtle", "medium", "strong"',
+    ),
+  numberOfImages: z
+    .number()
+    .min(1)
+    .max(8)
+    .default(4)
+    .describe('Number of images to generate. Minimum 1, maximum 8 images.'),
+})
+
+export const gaiaFaceEnhancerParamsSchema = z.object({
+  imageUrl: z
+    .string()
+    .describe("The image URL to enhance. It must be GAIA's image url: contains `https://api.protogaia.com/` or `https://artventure-api.sipher.gg`"),
+  prompt: z.string().describe('Prompt for the enhancement'),
+})
+
+export const gaiaImageGeneratedResponseSchema = z.object({
+  success: z.boolean(),
+  images: z.array(z.string()),
+  error: z.string().optional(),
+})
+
+export const gaiaGenerateImagesRequestSchema = z.object({
+  recipeId: z.enum(recipeIds),
+  params: z.union([gaiaImageGeneratorSimpleParamsSchema, gaiaRemixParamsSchema, gaiaFaceEnhancerParamsSchema]),
+})
+
+export type GaiaUploadFile = z.infer<typeof gaiaUploadFileSchema>
+export type GaiaInitUploadResponse = z.infer<typeof gaiaInitUploadResponseSchema>
+export type GaiaSdStyle = z.infer<typeof gaiaSdStyleSchema>
+export type GaiaRecipeTaskRequest = z.infer<typeof gaiaRecipeTaskRequestSchema>
+export type GaiaImage = z.infer<typeof gaiaImageSchema>
+export type GaiaRecipeTask = z.infer<typeof gaiaRecipeTaskSchema>
+export type GaiaImagesResponse = z.infer<typeof gaiaImageGeneratedResponseSchema>
+export type GaiaGenerateImagesRequest = z.infer<typeof gaiaGenerateImagesRequestSchema>

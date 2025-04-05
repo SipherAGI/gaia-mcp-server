@@ -6,6 +6,8 @@ import {
   GaiaRecipeTaskRequest,
   GaiaSdStyle,
   GaiaUploadFile,
+  GaiaGenerateImagesRequest,
+  GaiaImagesResponse,
 } from './types';
 import { fetchImage } from '../utils/fetch-image';
 import { imageSize } from 'image-size';
@@ -159,7 +161,7 @@ export class ApiClient {
   ): Promise<GaiaSdStyle> {
     try {
       const res = await this.httpClient.post<GaiaSdStyle>(
-        '/api/sd-styles',
+        "/api/sd-styles",
         {
           images: imageUrls.map((url) => ({
             url,
@@ -192,7 +194,7 @@ export class ApiClient {
   ): Promise<GaiaRecipeTask> {
     try {
       const res = await this.httpClient.post<GaiaRecipeTask>(
-        '/api/recipe/tasks/',
+        "/api/recipe/tasks/",
         {
           recipeId: request.recipeId,
           params: request.params,
@@ -205,6 +207,32 @@ export class ApiClient {
         error instanceof Error ? error.message : 'Unknown error occurred';
 
       throw new Error(`Failed to do recipe task: ${message}`);
+    }
+  }
+
+  /**
+   * Generates images using a recipe task on the Gaia platform
+   * 
+   * @param request - The recipe task request containing recipe ID and parameters
+   * @returns The generated images response
+   * @throws Will throw an error if the image generation fails
+   */
+  async generateImages(request: GaiaGenerateImagesRequest) {
+    try {
+      const res = await this.httpClient.post<GaiaImagesResponse>(
+        "/api/recipe/agi-tasks/create-task",
+        {
+          recipeId: request.recipeId,
+          params: request.params,
+        }
+      )
+
+      return res.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
+      throw new Error(`Failed to generate images: ${message}`);
     }
   }
 }

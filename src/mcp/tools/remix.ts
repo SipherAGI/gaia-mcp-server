@@ -1,0 +1,51 @@
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { ApiClient } from "../../api/client";
+import { createTool } from "../base";
+import { gaiaRemixParamsSchema } from "../../api/types";
+
+export const remixTool = createTool({
+  name: "remix",
+  description: "Create new variations of an existing image",
+  parameters: gaiaRemixParamsSchema,
+  handler: async (args) => {
+    const apiClient = new ApiClient({
+      baseUrl: process.env.GAIA_API_URL ?? "https://api.protogaia.com",
+      apiKey: process.env.GAIA_API_KEY,
+    });
+
+    try {
+      const imageResponse = await apiClient.generateImages({
+        recipeId: "remix",
+        params: args,
+      });
+
+      const result: CallToolResult = {
+        content: [
+          {
+            type: "text",
+            text: `Successfully created ${imageResponse.images.length} variations of the image`,
+          },
+          ...imageResponse.images.map((image) => ({
+            type: "image" as const,
+            data: image as string,
+            mimeType: "image/png",
+          })),
+        ],
+      }
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Unknown error occurred";
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to create variations of the image: ${errorMessage}`
+          }
+        ]
+      };
+    }
+  }
+})

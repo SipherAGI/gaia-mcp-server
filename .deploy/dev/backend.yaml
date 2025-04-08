@@ -39,9 +39,9 @@ rollout-metaverse:
         containerPort:
           health: 3000
         health:
-          live: /
+          live: /health
           livenessPort: 3000
-          ready: /
+          ready: /health
           readinessPort: 3000
           initialDelaySeconds: 35
   env:

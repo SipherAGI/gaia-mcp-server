@@ -71,9 +71,11 @@ export class GaiaMcpServer {
         },
       });
 
-    // Initialize Redis if configured
+    // Set Redis key prefix regardless of Redis configuration
     this.redisKeyPrefix = cfg.redis?.keyPrefix || 'gaia-mcp:sessions:';
-    if (cfg.redis) {
+
+    // Only initialize Redis if we have a valid configuration (URL or host)
+    if (cfg.redis && (cfg.redis.url || cfg.redis.host)) {
       this.initRedis(cfg.redis);
     } else {
       this.logger.info('Redis not configured, using in-memory session storage');
@@ -84,14 +86,21 @@ export class GaiaMcpServer {
     try {
       if (!redisConfig) return;
 
+      // Only attempt to connect if we have a URL or a valid host
       if (redisConfig.url) {
+        this.logger.info('Connecting to Redis using URL');
         this.redisClient = new Redis(redisConfig.url);
-      } else {
+      } else if (redisConfig.host) {
+        this.logger.info(`Connecting to Redis using host: ${redisConfig.host}`);
         this.redisClient = new Redis({
-          host: redisConfig.host || 'localhost',
+          host: redisConfig.host,
           port: redisConfig.port || 6379,
           password: redisConfig.password,
         });
+      } else {
+        // No valid Redis configuration, fallback to in-memory storage
+        this.logger.info('Incomplete Redis configuration, using in-memory session storage');
+        return;
       }
 
       if (this.redisClient) {

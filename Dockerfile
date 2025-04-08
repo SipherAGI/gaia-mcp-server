@@ -41,7 +41,7 @@ COPY --from=build /app/dist ./dist
 # Set environment variables with defaults
 ENV MCP_SERVER_SSE_PORT=3000
 ENV GAIA_API_URL=https://artventure-api.sipher.gg
-ENV GAIA_API_KEY=""
+ENV LOG_LEVEL=info
 
 # Expose the SSE port
 EXPOSE ${MCP_SERVER_SSE_PORT}

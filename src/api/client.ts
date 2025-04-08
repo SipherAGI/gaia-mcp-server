@@ -50,15 +50,19 @@ export class ApiClient {
     associatedResource: FileAssociatedResource = FileAssociatedResource.STYLE,
   ): Promise<GaiaUploadFile[]> {
     const uploadedFiles: GaiaUploadFile[] = [];
+    const failedUrls: { url: string; error: string }[] = [];
 
     for (const imageUrl of imageUrls) {
       if (!imageUrl.startsWith('http')) {
-        // skip non-http image urls
+        console.warn(`Skipping non-HTTP image URL: ${imageUrl}`);
+        failedUrls.push({ url: imageUrl, error: 'URL must start with http:// or https://' });
         continue;
       }
 
       try {
-        // Fetch the image
+        console.info(`Processing image from URL: ${imageUrl}`);
+
+        // Fetch the image with retry logic
         const base64Image = await fetchImage(imageUrl);
 
         const parts = base64Image.split(',');
@@ -69,27 +73,31 @@ export class ApiClient {
         const imageBuffer = Buffer.from(parts[1], 'base64');
         const fileSize = imageBuffer.length;
 
+        console.info(`Successfully fetched image (${fileSize} bytes) from: ${imageUrl}`);
+
         // Extract image dimensions using image-size
         const metadata = imageSize(imageBuffer);
         if (!metadata.width || !metadata.height) {
           throw new Error('Failed to extract image dimensions');
         }
 
+        console.info(`Image dimensions: ${metadata.width}x${metadata.height}`);
+
         // Initialize upload
+        console.info(`Initializing upload for image: ${imageUrl}`);
         const initResponse = await this.httpClient.post<GaiaInitUploadResponse[]>(
           '/api/upload/initialize',
           {
-            file: [
+            files: [
               {
-                filename: 'image.png',
-                size: fileSize,
-                mimeType: 'image/png',
+                filename: `image_${Date.now()}.png`,
+                mimetype: 'image/png',
                 metadata: {
                   width: metadata.width,
                   height: metadata.height,
                 },
+                fileSize,
               },
-              fileSize,
             ],
             associatedResource,
             chunkSize: MULTIPART_FILE_CHUNK,
@@ -98,31 +106,40 @@ export class ApiClient {
 
         const uploadInfo = initResponse.data[0];
         if (!uploadInfo) {
-          throw new Error('Failed to initialize upload');
+          throw new Error('Failed to initialize upload: No upload info returned from API');
         }
 
         // Upload parts
+        console.info(`Uploading ${uploadInfo.uploadUrls.length} chunks for image: ${imageUrl}`);
         const uploadPromises = uploadInfo.uploadUrls.map(async (url: string, index: number) => {
           const start = index * MULTIPART_FILE_CHUNK;
           const end = Math.min(start + MULTIPART_FILE_CHUNK, imageBuffer.length);
           const chunk = imageBuffer.slice(start, end);
           const partNumber = index + 1;
 
-          const res = await axios.put(url, chunk, {
-            headers: {
-              'Content-Type': 'application/octet-stream',
-            },
-          });
+          try {
+            const res = await axios.put(url, chunk, {
+              headers: {
+                'Content-Type': 'application/octet-stream',
+              },
+            });
 
-          return {
-            eTag: res.headers['etag'],
-            partNumber,
-          };
+            return {
+              eTag: res.headers['etag'],
+              partNumber,
+            };
+          } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`Failed to upload chunk ${partNumber} for ${imageUrl}: ${errorMsg}`);
+            throw error; // Re-throw to be caught by Promise.all
+          }
         });
 
         const uploadResults = await Promise.all(uploadPromises);
+        console.info(`Successfully uploaded all chunks for image: ${imageUrl}`);
 
         // Complete upload
+        console.info(`Completing upload for image: ${imageUrl}`);
         await this.httpClient.post('/api/upload/complete', [
           {
             key: uploadInfo.key,
@@ -131,11 +148,21 @@ export class ApiClient {
           },
         ]);
 
+        console.info(`Upload completed successfully for image: ${imageUrl}`);
         uploadedFiles.push(uploadInfo.file);
       } catch (error) {
-        console.error(`Failed to fetch image from URL ${imageUrl}: ${error}`);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`Failed to process image from URL ${imageUrl}: ${errorMsg}`);
+        failedUrls.push({ url: imageUrl, error: errorMsg });
         continue;
       }
+    }
+
+    if (failedUrls.length > 0) {
+      console.warn(
+        `${failedUrls.length} of ${imageUrls.length} image uploads failed:`,
+        failedUrls.map(f => `${f.url} (${f.error})`).join(', '),
+      );
     }
 
     return uploadedFiles;

@@ -30,6 +30,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.2.0+sha512.0d27364e0139c6aadeed65ada153135e0ca96c8da42123bd50047f961339dc7a758fc2e944b428f52be570d1bd3372455c1c65fa2e7aa0bfbf931190f9552001",
   "dependencies": {
+    "@aws-sdk/client-ssm": "^3.782.0",
+    "@aws-sdk/credential-providers": "^3.782.0",
     "@modelcontextprotocol/sdk": "^1.8.0",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",

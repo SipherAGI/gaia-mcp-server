@@ -42,9 +42,10 @@ COPY --from=build /app/dist ./dist
 ENV MCP_SERVER_SSE_PORT=3000
 ENV GAIA_API_URL=https://artventure-api.sipher.gg
 ENV LOG_LEVEL=info
+ENV AWS_REGION=ap-southeast-1
 
 # Expose the SSE port
 EXPOSE ${MCP_SERVER_SSE_PORT}
 
 # Run the SSE server
-CMD ["node", "dist/sse.js"] 
+CMD ["node", "dist/sse.js"]

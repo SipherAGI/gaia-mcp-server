@@ -52,7 +52,6 @@ MCP_SERVER_SSE_PORT=3000
 
 # Gaia API
 GAIA_API_URL='https://artventure-api.sipher.gg'
-GAIA_API_KEY='your-api-key-here'
 
 # Redis Configuration (optional)
 REDIS_URL='redis://username:password@host:port'
@@ -168,7 +167,6 @@ const logger = createLogger({
 const server = new GaiaMcpServer({
   gaia: {
     apiUrl: process.env.GAIA_API_URL,
-    apiKey: process.env.GAIA_API_KEY,
   },
   logger: logger.child({ component: 'GaiaMcpServer' }),
 });
@@ -337,7 +335,7 @@ docker build -t gaia-mcp-sse .
 To run the SSE server using Docker:
 
 ```bash
-docker run -p 3000:3000 -e MCP_SERVER_SSE_PORT=3000 -e GAIA_API_URL=https://your-api-url -e GAIA_API_KEY=your-api-key gaia-mcp-sse
+docker run -p 3000:3000 -e MCP_SERVER_SSE_PORT=3000 -e GAIA_API_URL=https://your-api-url gaia-mcp-sse
 ```
 
 ### Using Docker Compose
@@ -354,7 +352,6 @@ This will build and start the SSE server with the environment variables specifie
 
 - `MCP_SERVER_SSE_PORT`: Port for the SSE server (default: 3000)
 - `GAIA_API_URL`: URL for the Gaia API (default: https://artventure-api.sipher.gg)
-- `GAIA_API_KEY`: API key for the Gaia API
 
 ### Cloud Deployment
 

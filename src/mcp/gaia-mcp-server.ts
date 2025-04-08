@@ -34,17 +34,17 @@ export type SSESessionData = {
 export class GaiaMcpServer {
   private readonly serverName = 'GaiaMcpServer';
   private readonly serverVersion = '0.0.1';
+  private readonly ssePort: number;
+  private readonly logger: Logger;
+  private readonly redisKeyPrefix: string;
 
   private server: McpServer;
-  private ssePort: number;
   private gaiaConfig: {
     apiUrl: string;
     apiKey?: string;
   };
-  private logger: Logger;
   // Redis client
   private redisClient: Redis | null = null;
-  private redisKeyPrefix: string;
   // Fallback in-memory sessions store if Redis is not configured
   private sessions: Map<string, SSESessionData> = new Map();
 
@@ -288,6 +288,12 @@ export class GaiaMcpServer {
     // health check endpoint
     expressApp.get('/health', (_, res) => {
       res.status(200).send('OK');
+    });
+
+    expressApp.get('/', (_, res) => {
+      res.status(200).json({
+        message: 'This is the SSE MCP server of ProtoGaia. Check more: https://protogaia.com/',
+      });
     });
 
     // start SSE server

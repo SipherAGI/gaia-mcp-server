@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { imageSize } from 'image-size';
+import { Logger } from 'pino';
 
 import {
   FileAssociatedResource,
@@ -12,14 +13,18 @@ import {
   GaiaImagesResponse,
 } from './types.js';
 import { fetchImage } from '../utils/fetch-image.js';
+import { logger as defaultLogger } from '../utils/logger.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
+const REQUEST_TIMEOUT = 1000 * 60; // 60 seconds timeout for API requests
 
 /**
  * Client for interacting with the Gaia API
  */
 export class ApiClient {
   private readonly httpClient: AxiosInstance;
+  private readonly logger: Logger;
+  private readonly timeout: number;
 
   /**
    * Creates a new instance of the ApiClient
@@ -27,15 +32,34 @@ export class ApiClient {
    * @param options - Configuration options for the client
    * @param options.baseUrl - The base URL of the Gaia API
    * @param options.apiKey - Optional API key for authentication
+   * @param options.logger - Optional Pino logger instance
+   * @param options.timeout - Optional request timeout in milliseconds (default: 60000)
    */
-  constructor({ baseUrl, apiKey }: { baseUrl: string; apiKey?: string }) {
+  constructor({
+    baseUrl,
+    apiKey,
+    logger,
+    timeout,
+  }: {
+    baseUrl: string;
+    apiKey?: string;
+    logger?: Logger;
+    timeout?: number;
+  }) {
+    // Store the timeout value for use in other Axios calls
+    this.timeout = timeout || REQUEST_TIMEOUT;
+
     this.httpClient = axios.create({
       baseURL: baseUrl,
+      timeout: this.timeout,
     });
 
     if (apiKey) {
       this.httpClient.defaults.headers.common['Authorization'] = `Bearer ${apiKey}`;
     }
+
+    // Use provided logger or create a child logger from the default logger
+    this.logger = logger || defaultLogger.child({ component: 'ApiClient' });
   }
 
   /**
@@ -54,13 +78,13 @@ export class ApiClient {
 
     for (const imageUrl of imageUrls) {
       if (!imageUrl.startsWith('http')) {
-        console.warn(`Skipping non-HTTP image URL: ${imageUrl}`);
+        this.logger.warn(`Skipping non-HTTP image URL: ${imageUrl}`);
         failedUrls.push({ url: imageUrl, error: 'URL must start with http:// or https://' });
         continue;
       }
 
       try {
-        console.info(`Processing image from URL: ${imageUrl}`);
+        this.logger.info(`Processing image from URL: ${imageUrl}`);
 
         // Fetch the image with retry logic
         const base64Image = await fetchImage(imageUrl);
@@ -73,7 +97,7 @@ export class ApiClient {
         const imageBuffer = Buffer.from(parts[1], 'base64');
         const fileSize = imageBuffer.length;
 
-        console.info(`Successfully fetched image (${fileSize} bytes) from: ${imageUrl}`);
+        this.logger.info(`Successfully fetched image (${fileSize} bytes) from: ${imageUrl}`);
 
         // Extract image dimensions using image-size
         const metadata = imageSize(imageBuffer);
@@ -81,10 +105,10 @@ export class ApiClient {
           throw new Error('Failed to extract image dimensions');
         }
 
-        console.info(`Image dimensions: ${metadata.width}x${metadata.height}`);
+        this.logger.info(`Image dimensions: ${metadata.width}x${metadata.height}`);
 
         // Initialize upload
-        console.info(`Initializing upload for image: ${imageUrl}`);
+        this.logger.info(`Initializing upload for image: ${imageUrl}`);
         const initResponse = await this.httpClient.post<GaiaInitUploadResponse[]>(
           '/api/upload/initialize',
           {
@@ -110,7 +134,7 @@ export class ApiClient {
         }
 
         // Upload parts
-        console.info(`Uploading ${uploadInfo.uploadUrls.length} chunks for image: ${imageUrl}`);
+        this.logger.info(`Uploading ${uploadInfo.uploadUrls.length} chunks for image: ${imageUrl}`);
         const uploadPromises = uploadInfo.uploadUrls.map(async (url: string, index: number) => {
           const start = index * MULTIPART_FILE_CHUNK;
           const end = Math.min(start + MULTIPART_FILE_CHUNK, imageBuffer.length);
@@ -122,6 +146,7 @@ export class ApiClient {
               headers: {
                 'Content-Type': 'application/octet-stream',
               },
+              timeout: this.timeout,
             });
 
             return {
@@ -130,16 +155,16 @@ export class ApiClient {
             };
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`Failed to upload chunk ${partNumber} for ${imageUrl}: ${errorMsg}`);
+            this.logger.error(`Failed to upload chunk ${partNumber} for ${imageUrl}: ${errorMsg}`);
             throw error; // Re-throw to be caught by Promise.all
           }
         });
 
         const uploadResults = await Promise.all(uploadPromises);
-        console.info(`Successfully uploaded all chunks for image: ${imageUrl}`);
+        this.logger.info(`Successfully uploaded all chunks for image: ${imageUrl}`);
 
         // Complete upload
-        console.info(`Completing upload for image: ${imageUrl}`);
+        this.logger.info(`Completing upload for image: ${imageUrl}`);
         await this.httpClient.post('/api/upload/complete', [
           {
             key: uploadInfo.key,
@@ -148,20 +173,18 @@ export class ApiClient {
           },
         ]);
 
-        console.info(`Upload completed successfully for image: ${imageUrl}`);
+        this.logger.info(`Upload completed successfully for image: ${imageUrl}`);
         uploadedFiles.push(uploadInfo.file);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`Failed to process image from URL ${imageUrl}: ${errorMsg}`);
+        this.logger.error(`Failed to process image from URL ${imageUrl}: ${errorMsg}`);
         failedUrls.push({ url: imageUrl, error: errorMsg });
-        continue;
       }
     }
 
     if (failedUrls.length > 0) {
-      console.warn(
-        `${failedUrls.length} of ${imageUrls.length} image uploads failed:`,
-        failedUrls.map(f => `${f.url} (${f.error})`).join(', '),
+      this.logger.warn(
+        `${failedUrls.length} of ${imageUrls.length} image uploads failed: ${failedUrls.map(f => `${f.url} (${f.error})`).join(', ')}`,
       );
     }
 

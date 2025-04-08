@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaFaceEnhancerParamsSchema } from '../../api/types.js';
+import { logger as defaultLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
 export const faceEnhancerTool = createTool({
@@ -9,14 +10,17 @@ export const faceEnhancerTool = createTool({
   description: "Enhance face's details in an existing image",
   parameters: gaiaFaceEnhancerParamsSchema,
   handler: async (args, context?: ToolContext) => {
-    // Get logger from context or fallback to console
-    const logger = context?.logger?.child({ tool: 'face-enhancer' }) || console;
+    // Get logger from context or fallback to default logger
+    const logger =
+      context?.logger?.child({ tool: 'face-enhancer' }) ||
+      defaultLogger.child({ tool: 'face-enhancer' });
 
     logger.info('Starting face enhancement', { args: JSON.stringify(args) });
 
     const apiClient = new ApiClient({
       baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? 'https://api.protogaia.com',
       apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
+      logger,
     });
 
     try {

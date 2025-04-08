@@ -52,3 +52,4 @@ temp/
 # Project specific
 # Add any project-specific files/directories to ignore here
 .specstory/
+.data/

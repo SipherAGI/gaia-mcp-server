@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy package.json and pnpm lock file
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies with --ignore-scripts to skip husky
+RUN pnpm install --ignore-scripts
 
 # Copy source code
 COPY tsconfig.json ./
@@ -32,8 +32,8 @@ RUN npm install -g pnpm@10.2.0
 # Copy package.json and pnpm lock file
 COPY package.json pnpm-lock.yaml ./
 
-# Install only production dependencies
-RUN pnpm install --prod
+# Install only production dependencies with --ignore-scripts to skip husky
+RUN pnpm install --prod --ignore-scripts
 
 # Copy build artifacts from the build stage
 COPY --from=build /app/dist ./dist

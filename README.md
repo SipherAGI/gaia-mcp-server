@@ -87,6 +87,39 @@ Redis can be configured in one of two ways:
    REDIS_KEY_PREFIX='gaia-mcp:sessions:'
    ```
 
+### AWS Parameter Store Integration
+
+For enhanced security, especially in production environments, you can store sensitive configuration values like Redis connection strings or passwords in AWS Parameter Store and reference them in your environment variables.
+
+To use a value from AWS Parameter Store, prefix the value with `ssm:` followed by the parameter path:
+
+```
+# Using SSM for Redis URL
+REDIS_URL='ssm:/gaia-mcp-server/dev/redis'
+
+# Using SSM for Redis password
+REDIS_PASSWORD='ssm:/gaia-mcp-server/dev/redis-password'
+```
+
+When the application starts, it will automatically detect these SSM references and fetch the actual values from AWS Parameter Store. This approach keeps sensitive information out of your codebase and environment files.
+
+#### Requirements for AWS Parameter Store
+
+- AWS credentials must be configured in the environment where the application runs
+- The application needs IAM permissions to access the specified parameters
+- By default, the application uses the AWS region specified in the `AWS_REGION` environment variable, or falls back to `ap-southeast-1`
+
+#### Local Development with AWS Profiles
+
+For local development, you can use AWS profiles to manage your credentials:
+
+```
+# Specify an AWS profile to use for credentials
+AWS_PROFILE=your-profile-name
+```
+
+This allows you to use credentials from your local AWS configuration without having to set AWS access keys directly in environment variables.
+
 ### Fallback Mechanism
 
 The server includes a fallback mechanism to in-memory storage if:

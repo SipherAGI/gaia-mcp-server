@@ -25,6 +25,7 @@ jobs:
       argocd_project: artventure
       route53_domain: gaia-mcp.sipher.gg
       docker_file_path: Dockerfile
+      force_service_account: true
     secrets:
       PAT: ${{ secrets.SIPHERXYZ_PAT }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_DEV }}

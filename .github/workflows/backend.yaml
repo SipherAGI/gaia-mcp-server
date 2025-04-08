@@ -23,10 +23,7 @@ jobs:
       cloud: gcp
       namespace: artventure
       argocd_project: artventure
-      create_argocd_project: true
       route53_domain: gaia-mcp.sipher.gg
-      route53_value: 34.87.90.21
-      release_name: mcp-server
       docker_file_path: Dockerfile
     secrets:
       PAT: ${{ secrets.SIPHERXYZ_PAT }}

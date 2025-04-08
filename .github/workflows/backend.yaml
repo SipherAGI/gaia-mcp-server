@@ -1,0 +1,40 @@
+name: Backend
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  backend-merge-deploy:
+    if: (github.event_name == 'push' && github.ref_name == 'develop') || (github.event_name == 'workflow_dispatch' && github.ref_name == 'develop')
+    uses: SipherAGI/devops-common-workflows/.github/workflows/merge-deploy.yaml@main
+    with:
+      module: backend
+      argocd_url: gcp-cd.sipher.gg
+      cloud: gcp
+      namespace: artventure
+      argocd_project: artventure
+      create_argocd_project: true
+      route53_domain: gaia-mcp.sipher.gg
+      route53_value: 34.87.90.21
+      release_name: mcp-server
+    secrets:
+      PAT: ${{ secrets.PAT }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_DEV }}
+      ARGOCD_SECRET: ${{ secrets.ARGO_G1_CD }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  backend-pull-request:
+    if: github.event_name == 'pull_request'
+    uses: SipherAGI/devops-common-workflows/.github/workflows/pull-request.yaml@main
+    with:
+      module: backend
+    secrets:
+      PAT: ${{ secrets.PAT }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      docker_build_args: '
+        --build-arg NEXT_PUBLIC_NODE_ENV_ARG=development
+        ' 

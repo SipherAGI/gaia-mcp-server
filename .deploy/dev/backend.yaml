@@ -1,0 +1,48 @@
+rollout-metaverse:
+  environment: dev
+  ingresses:
+  - name : backend-ingress
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/use-regex: 'true'
+      kubernetes.io/ingress.class: limit-nginx
+    serviceName: mcp-server-api-http
+    rules:
+    - host: gaia-mcp.sipher.gg
+      paths:
+      - path: /
+        servicePort: 3000
+    tls:
+    - secretName: sipher-gg-tls
+      hosts:
+      - gaia-mcp.sipher.gg
+  roleAnywhere: 
+    - env: 
+        ROLE_ARN: arn:aws:iam::127395585441:role/mcp-server@artventure@g1
+      image: asia-southeast1-docker.pkg.dev/g1-dev-438602/sipherxyz/aws-iam-roles-anywhere:1.1.5-alpine
+  deploys:
+  - name: api
+    replicasCount: 1
+    resources:
+      requests:
+        memory: 150Mi
+        cpu: 50m
+      limits:
+        memory: 512Mi
+        cpu: 150m
+    services:
+      - name: http
+        containerPort:
+          api: 3000
+      - name: health
+        type: ClusterIP
+        containerPort:
+          health: 3000
+        health:
+          live: /
+          livenessPort: 3000
+          ready: /
+          readinessPort: 3000
+          initialDelaySeconds: 35
+  env:
+    AWS_CONFIG_FILE: /iam-role/config

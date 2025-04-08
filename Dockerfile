@@ -7,9 +7,8 @@ RUN npm install -g pnpm@10.2.0
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and pnpm lock file
+# Copy package.json
 COPY package.json ./
-COPY pnpm-lock.yaml ./
 
 # Install dependencies with --ignore-scripts to skip husky
 RUN pnpm install --ignore-scripts
@@ -30,11 +29,13 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@10.2.0
 
-# Copy package.json and pnpm lock file
+# Copy package.json
 COPY package.json ./
-COPY pnpm-lock.yaml ./
 
-# Install only production dependencies with --ignore-scripts to skip husky
+# Copy the generated lock file from build stage
+COPY --from=build /app/pnpm-lock.yaml ./
+
+# Install only production dependencies
 RUN pnpm install --prod --ignore-scripts
 
 # Copy build artifacts from the build stage

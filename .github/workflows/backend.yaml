@@ -7,6 +7,12 @@ on:
     branches: [develop]
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+  pull-requests: write
+
 jobs:
   backend-merge-deploy:
     if: (github.event_name == 'push' && github.ref_name == 'develop') || (github.event_name == 'workflow_dispatch' && github.ref_name == 'develop')

@@ -10,11 +10,14 @@ services:
     environment:
       - MCP_SERVER_SSE_PORT=${MCP_SERVER_SSE_PORT:-3000}
       - GAIA_API_URL=${GAIA_API_URL:-https://artventure-api.sipher.gg}
+      # Redis configuration - Either REDIS_URL or individual components will be used
+      # If both are provided, REDIS_URL takes precedence
       - REDIS_URL=${REDIS_URL:-}
       - REDIS_HOST=${REDIS_HOST:-}
       - REDIS_PORT=${REDIS_PORT:-}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       - REDIS_KEY_PREFIX=${REDIS_KEY_PREFIX:-gaia-mcp:sessions:}
+      # AWS configuration for SSM parameter resolution
       - AWS_REGION=${AWS_REGION:-ap-southeast-1}
       # AWS_PROFILE is only used for local development
       - AWS_PROFILE=${AWS_PROFILE:-}

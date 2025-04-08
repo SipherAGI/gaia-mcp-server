@@ -111,6 +111,7 @@ export function extractParameterName(reference: string): string {
  * Resolve an SSM parameter reference to its actual value
  * @param reference The SSM parameter reference (e.g., ssm:/path/to/parameter)
  * @returns The resolved parameter value
+ * @throws Error if parameter cannot be resolved
  */
 export async function resolveSSMParameter(reference: string): Promise<string> {
   if (!isSSMParameterReference(reference)) {
@@ -118,6 +119,17 @@ export async function resolveSSMParameter(reference: string): Promise<string> {
   }
 
   const parameterName = extractParameterName(reference);
+  logger.debug({ parameterName, reference }, 'Attempting to resolve SSM parameter');
+
   const client = getSSMClient();
-  return await client.getParameter(parameterName);
+  try {
+    const value = await client.getParameter(parameterName);
+    logger.debug({ parameterName, reference, value }, 'Successfully resolved SSM parameter');
+    return value;
+  } catch (error) {
+    logger.error({ error, parameterName, reference }, 'Failed to resolve SSM parameter');
+    // Instead of returning the original reference (which causes Redis to try to connect to it as a socket),
+    // throw an error to force proper error handling
+    throw new Error(`Failed to resolve SSM parameter: ${parameterName}`);
+  }
 }

@@ -5,16 +5,26 @@ import { logger } from './utils/logger.js';
 // Main async function to ensure we can use await
 async function main() {
   try {
-    // Get initialized config with resolved SSM parameters
+    logger.info(
+      'Starting server initialization, waiting for configuration to be fully resolved...',
+    );
+
+    // Get fully initialized config with all resolved SSM parameters
+    // This will wait until all parameters are resolved before continuing
     const config = await Config.getInitializedInstance();
-    logger.info('Configuration initialized, starting server');
+
+    if (!Config.isInitialized()) {
+      throw new Error('Configuration failed to initialize completely');
+    }
+
+    logger.info('Configuration fully initialized, starting stdio server');
 
     // Create server with logger
     const gaiaMcpServer = new GaiaMcpServer({
       gaia: {
         apiUrl: config.gaiaConfig.apiUrl,
       },
-      logger: logger.child({ component: 'GaiaMcpServer' }),
+      logger: logger.child({ component: 'GaiaMcpServer', mode: 'STDIO' }),
     });
 
     // Start server with stdio transport

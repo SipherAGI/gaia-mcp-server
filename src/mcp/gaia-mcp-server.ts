@@ -17,10 +17,7 @@ export type GaiaMcpServerConfig = {
     apiKey?: string;
   };
   redis?: {
-    url?: string;
-    host?: string;
-    port?: number;
-    password?: string;
+    url: string;
     keyPrefix?: string;
   };
   logger?: Logger;
@@ -74,8 +71,8 @@ export class GaiaMcpServer {
     // Set Redis key prefix regardless of Redis configuration
     this.redisKeyPrefix = cfg.redis?.keyPrefix || 'gaia-mcp:sessions:';
 
-    // Only initialize Redis if we have a valid configuration (URL or host)
-    if (cfg.redis && (cfg.redis.url || cfg.redis.host)) {
+    // Only initialize Redis if we have a valid configuration with URL
+    if (cfg.redis?.url) {
       this.initRedis(cfg.redis);
     } else {
       this.logger.info('Redis not configured, using in-memory session storage');
@@ -84,37 +81,60 @@ export class GaiaMcpServer {
 
   private initRedis(redisConfig: GaiaMcpServerConfig['redis']): void {
     try {
-      if (!redisConfig) return;
-
-      // Only attempt to connect if we have a URL or a valid host
-      if (redisConfig.url) {
-        this.logger.info('Connecting to Redis using URL');
-        this.redisClient = new Redis(redisConfig.url);
-      } else if (redisConfig.host) {
-        this.logger.info(`Connecting to Redis using host: ${redisConfig.host}`);
-        this.redisClient = new Redis({
-          host: redisConfig.host,
-          port: redisConfig.port || 6379,
-          password: redisConfig.password,
-        });
-      } else {
-        // No valid Redis configuration, fallback to in-memory storage
-        this.logger.info('Incomplete Redis configuration, using in-memory session storage');
+      if (!redisConfig || !redisConfig.url) {
+        this.logger.info('No Redis configuration provided, using in-memory session storage');
         return;
       }
 
+      // Validate Redis URL
+      // Check if the URL still has SSM prefix (failed resolution)
+      if (redisConfig.url.startsWith('ssm:')) {
+        this.logger.warn(
+          { url: redisConfig.url },
+          'Redis URL still contains SSM prefix, indicating failed resolution. Using in-memory storage.',
+        );
+        return;
+      }
+
+      // Check if URL is a valid Redis URL format
+      if (!redisConfig.url.startsWith('redis://') && !redisConfig.url.startsWith('rediss://')) {
+        this.logger.warn(
+          { url: redisConfig.url },
+          'Redis URL does not have a valid format. Expected redis:// or rediss://. Using in-memory storage.',
+        );
+        return;
+      }
+
+      this.redisClient = new Redis(redisConfig.url);
+
       if (this.redisClient) {
+        // Add connection timeout
+        const connectionTimeout = setTimeout(() => {
+          this.logger.error('Redis connection timed out after 5 seconds');
+          if (this.redisClient) {
+            this.redisClient.disconnect();
+            this.redisClient = null;
+          }
+        }, 5000);
+
         this.redisClient.on('connect', () => {
+          clearTimeout(connectionTimeout);
           this.logger.info('Connected to Redis server');
         });
 
         this.redisClient.on('error', (err: Error) => {
+          clearTimeout(connectionTimeout);
           this.logger.error({ err }, 'Redis connection error');
           this.logger.warn('Falling back to in-memory session storage');
-          this.redisClient = null;
+
+          // Only set to null if the client hasn't been changed elsewhere
+          if (this.redisClient) {
+            this.redisClient.disconnect();
+            this.redisClient = null;
+          }
         });
       }
-    } catch (err: unknown) {
+    } catch (err) {
       this.logger.error({ err }, 'Failed to initialize Redis client');
       this.logger.warn('Falling back to in-memory session storage');
       this.redisClient = null;

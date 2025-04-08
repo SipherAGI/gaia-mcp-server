@@ -73,19 +73,26 @@ The Gaia MCP Server can use Redis for session storage, which is particularly use
 
 Redis can be configured in one of two ways:
 
-1. **Connection String**: Use the `REDIS_URL` environment variable to specify a complete Redis connection string.
+1. **Connection String (Preferred)**: Use the `REDIS_URL` environment variable to specify a complete Redis connection string.
 
    ```
    REDIS_URL='redis://username:password@host:port'
    ```
 
-2. **Individual Parameters**: Specify individual connection parameters using separate environment variables.
+2. **Individual Parameters**: Specify individual connection parameters using separate environment variables. These will be automatically combined into a Redis URL internally.
    ```
    REDIS_HOST='localhost'
    REDIS_PORT=6379
    REDIS_PASSWORD='your-redis-password'
-   REDIS_KEY_PREFIX='gaia-mcp:sessions:'
    ```
+
+If both the connection string and individual parameters are provided, the connection string (`REDIS_URL`) takes precedence.
+
+Regardless of which method you use, you can set a key prefix for Redis keys:
+
+```
+REDIS_KEY_PREFIX='gaia-mcp:sessions:'
+```
 
 ### AWS Parameter Store Integration
 
@@ -97,7 +104,7 @@ To use a value from AWS Parameter Store, prefix the value with `ssm:` followed b
 # Using SSM for Redis URL
 REDIS_URL='ssm:/gaia-mcp-server/dev/redis'
 
-# Using SSM for Redis password
+# Using SSM for Redis password (when using individual parameters)
 REDIS_PASSWORD='ssm:/gaia-mcp-server/dev/redis-password'
 ```
 

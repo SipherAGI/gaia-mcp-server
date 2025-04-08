@@ -5,18 +5,19 @@ import { logger } from './utils/logger.js';
 // Main async function to ensure we can use await
 async function main() {
   try {
-    // Get fully initialized config with resolved SSM parameters
-    const config = await Config.getInitializedInstance();
-    logger.info('Configuration initialized, starting SSE server');
+    logger.info(
+      'Starting SSE server initialization, waiting for configuration to be fully resolved...',
+    );
 
-    // Log the Redis configuration for debugging
-    if (config.redisConfig?.url) {
-      logger.info('Using Redis URL from config');
-    } else if (config.redisConfig?.host) {
-      logger.info(`Using Redis host from config: ${config.redisConfig.host}`);
-    } else {
-      logger.info('No Redis configuration found, will use in-memory session storage');
+    // Get fully initialized config with all resolved SSM parameters
+    // This will wait until all parameters are resolved before continuing
+    const config = await Config.getInitializedInstance();
+
+    if (!Config.isInitialized()) {
+      throw new Error('Configuration failed to initialize completely');
     }
+
+    logger.info('Configuration fully initialized, starting SSE server');
 
     const gaiaMcpServer = new GaiaMcpServer({
       sse: {

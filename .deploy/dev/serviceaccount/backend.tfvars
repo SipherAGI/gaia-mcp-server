@@ -12,9 +12,9 @@ aws_iam_policy_document = {
             ],
             "Effect": "Allow",
             "Resource": [
-                "arn:aws:ssm:ap-southeast-1:127395585441:parameter/ather-gallery/dev/*",
+                "arn:aws:ssm:ap-southeast-1:127395585441:parameter/gaia-mcp/dev/*",
                 "arn:aws:ssm:ap-southeast-1:127395585441:parameter/artventure/dev/*",
-                "arn:aws:ssm:ap-southeast-1:127395585441:parameter/atherlabs/notif-service/dev/*"
+                "arn:aws:ssm:ap-southeast-1:127395585441:parameter/ather-os/dev/*"
             ],
             "Sid": "AllowGetParameter"
         }

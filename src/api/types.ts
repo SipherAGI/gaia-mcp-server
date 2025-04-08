@@ -241,12 +241,21 @@ export const gaiaImageGeneratedResponseSchema = z.object({
   error: z.string().optional(),
 });
 
+export const gaiaUpscalerParamsSchema = z.object({
+  image: z.string().url().describe("The image URL to upscale. It must be a valid GAIA's image URL"),
+  upscale_mode: z.string().describe('The upscale mode to use.'),
+  upscale_ratio: z
+    .number()
+    .describe('The ratio to upscale the image. It must be a number between 1 and 4'),
+});
+
 export const gaiaGenerateImagesRequestSchema = z.object({
   recipeId: z.enum(recipeIds),
   params: z.union([
     gaiaImageGeneratorSimpleParamsSchema,
     gaiaRemixParamsSchema,
     gaiaFaceEnhancerParamsSchema,
+    gaiaUpscalerParamsSchema,
   ]),
 });
 

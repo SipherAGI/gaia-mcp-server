@@ -298,6 +298,7 @@ The Gaia MCP Server provides several AI image generation and manipulation tools 
 - **generate-image**: Generate images with Protogaia based on text prompts
 - **remix**: Create new variations of an existing image
 - **face-enhancer**: Enhance face details in an existing image
+- **upscaler**: Enhance the resolution quality of image
 
 Each tool is registered with the MCP server and can be invoked according to the Model Context Protocol standard.
 

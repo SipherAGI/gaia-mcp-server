@@ -27,8 +27,9 @@ jobs:
       route53_domain: gaia-mcp.sipher.gg
       route53_value: 34.87.90.21
       release_name: mcp-server
+      docker_file_path: Dockerfile
     secrets:
-      PAT: ${{ secrets.PAT }}
+      PAT: ${{ secrets.SIPHERXYZ_PAT }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_DEV }}
       ARGOCD_SECRET: ${{ secrets.ARGO_G1_CD }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -39,7 +40,7 @@ jobs:
     with:
       module: backend
     secrets:
-      PAT: ${{ secrets.PAT }}
+      PAT: ${{ secrets.SIPHERXYZ_PAT }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       docker_build_args: '
         --build-arg NEXT_PUBLIC_NODE_ENV_ARG=development

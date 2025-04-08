@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import express from 'express';
+import { Redis } from 'ioredis';
 import { pino, Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 
@@ -13,9 +14,21 @@ export type GaiaMcpServerConfig = {
   };
   gaia: {
     apiUrl: string;
-    apiKey: string;
+    apiKey?: string;
+  };
+  redis?: {
+    url?: string;
+    host?: string;
+    port?: number;
+    password?: string;
+    keyPrefix?: string;
   };
   logger?: Logger;
+};
+
+export type SSESessionData = {
+  sessionId: string;
+  apiKey: string;
 };
 
 export class GaiaMcpServer {
@@ -26,11 +39,14 @@ export class GaiaMcpServer {
   private ssePort: number;
   private gaiaConfig: {
     apiUrl: string;
-    apiKey: string;
+    apiKey?: string;
   };
   private logger: Logger;
-  // Store API keys by session ID
-  private sessionApiKeys: Map<string, string> = new Map();
+  // Redis client
+  private redisClient: Redis | null = null;
+  private redisKeyPrefix: string;
+  // Fallback in-memory sessions store if Redis is not configured
+  private sessions: Map<string, SSESessionData> = new Map();
 
   constructor(cfg: GaiaMcpServerConfig) {
     this.server = new McpServer({
@@ -39,7 +55,10 @@ export class GaiaMcpServer {
     });
 
     this.ssePort = cfg.sse?.port ?? 8000;
-    this.gaiaConfig = cfg.gaia;
+    this.gaiaConfig = {
+      apiUrl: cfg.gaia.apiUrl,
+      apiKey: cfg.gaia.apiKey ?? undefined,
+    };
     this.logger =
       cfg.logger ||
       pino({
@@ -51,6 +70,102 @@ export class GaiaMcpServer {
           },
         },
       });
+
+    // Initialize Redis if configured
+    this.redisKeyPrefix = cfg.redis?.keyPrefix || 'gaia-mcp:sessions:';
+    if (cfg.redis) {
+      this.initRedis(cfg.redis);
+    } else {
+      this.logger.info('Redis not configured, using in-memory session storage');
+    }
+  }
+
+  private initRedis(redisConfig: GaiaMcpServerConfig['redis']): void {
+    try {
+      if (!redisConfig) return;
+
+      if (redisConfig.url) {
+        this.redisClient = new Redis(redisConfig.url);
+      } else {
+        this.redisClient = new Redis({
+          host: redisConfig.host || 'localhost',
+          port: redisConfig.port || 6379,
+          password: redisConfig.password,
+        });
+      }
+
+      if (this.redisClient) {
+        this.redisClient.on('connect', () => {
+          this.logger.info('Connected to Redis server');
+        });
+
+        this.redisClient.on('error', (err: Error) => {
+          this.logger.error({ err }, 'Redis connection error');
+          this.logger.warn('Falling back to in-memory session storage');
+          this.redisClient = null;
+        });
+      }
+    } catch (err: unknown) {
+      this.logger.error({ err }, 'Failed to initialize Redis client');
+      this.logger.warn('Falling back to in-memory session storage');
+      this.redisClient = null;
+    }
+  }
+
+  private async saveSession(sessionId: string, data: SSESessionData): Promise<void> {
+    if (this.redisClient) {
+      try {
+        await this.redisClient.set(
+          this.redisKeyPrefix + sessionId,
+          JSON.stringify(data),
+          'EX',
+          86400, // 24 hours expiration
+        );
+        this.logger.debug({ sessionId }, 'Session saved to Redis');
+      } catch (err: unknown) {
+        this.logger.error({ err, sessionId }, 'Failed to save session to Redis');
+        // Fallback to in-memory
+        this.sessions.set(sessionId, data);
+      }
+    } else {
+      // Store in memory if Redis is not available
+      this.sessions.set(sessionId, data);
+    }
+  }
+
+  private async getSession(sessionId: string): Promise<SSESessionData | undefined> {
+    if (this.redisClient) {
+      try {
+        const data = await this.redisClient.get(this.redisKeyPrefix + sessionId);
+        if (data) {
+          return JSON.parse(data) as SSESessionData;
+        }
+        return undefined;
+      } catch (err: unknown) {
+        this.logger.error({ err, sessionId }, 'Failed to get session from Redis');
+        // Fallback to in-memory
+        return this.sessions.get(sessionId);
+      }
+    } else {
+      // Use in-memory if Redis is not available
+      return this.sessions.get(sessionId);
+    }
+  }
+
+  private async deleteSession(sessionId: string): Promise<void> {
+    if (this.redisClient) {
+      try {
+        await this.redisClient.del(this.redisKeyPrefix + sessionId);
+        this.logger.debug({ sessionId }, 'Session deleted from Redis');
+      } catch (err: unknown) {
+        this.logger.error({ err, sessionId }, 'Failed to delete session from Redis');
+        // Fallback to in-memory
+        this.sessions.delete(sessionId);
+      }
+    } else {
+      // Use in-memory if Redis is not available
+      this.sessions.delete(sessionId);
+    }
   }
 
   private init() {
@@ -59,6 +174,13 @@ export class GaiaMcpServer {
     // Graceful shutdown
     process.on('SIGINT', async () => {
       this.logger.info('Shutting down...');
+
+      // Close Redis connection if available
+      if (this.redisClient) {
+        this.logger.info('Closing Redis connection');
+        await this.redisClient.quit();
+      }
+
       await this.server.close();
       this.logger.info('Server closed');
       process.exit(0);
@@ -76,13 +198,20 @@ export class GaiaMcpServer {
         tool.parameters,
         async (args: Record<string, any>, extra: { sessionId?: string }) => {
           // Get session-specific API key or fall back to default
-          const apiKey = extra?.sessionId ? this.sessionApiKeys.get(extra.sessionId) : undefined;
+          let apiKey = this.gaiaConfig.apiKey;
+
+          if (extra?.sessionId) {
+            const sessionData = await this.getSession(extra.sessionId);
+            if (sessionData?.apiKey) {
+              apiKey = sessionData.apiKey;
+            }
+          }
 
           // Create context with the session's API key or fall back to default
           const context = {
             apiConfig: {
               url: this.gaiaConfig.apiUrl,
-              key: apiKey || this.gaiaConfig.apiKey,
+              key: apiKey,
             },
             logger: this.logger.child({ tool: tool.name }),
           };
@@ -121,16 +250,19 @@ export class GaiaMcpServer {
 
       this.logger.info({ sessionId }, 'New SSE connection established');
 
-      // Store API key for this session
-      this.sessionApiKeys.set(sessionId, apiKey);
+      // Store session data for this session
+      await this.saveSession(sessionId, {
+        sessionId,
+        apiKey,
+      });
 
       // Store transport
       transports[sessionId] = transport;
 
-      res.on('close', () => {
+      res.on('close', async () => {
         // Clean up session data when connection closes
         delete transports[sessionId];
-        this.sessionApiKeys.delete(sessionId);
+        await this.deleteSession(sessionId);
         this.logger.info({ sessionId }, 'SSE connection closed');
       });
 

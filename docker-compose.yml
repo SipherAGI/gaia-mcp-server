@@ -10,5 +10,12 @@ services:
     environment:
       - MCP_SERVER_SSE_PORT=${MCP_SERVER_SSE_PORT:-3000}
       - GAIA_API_URL=${GAIA_API_URL:-https://artventure-api.sipher.gg}
-      - GAIA_API_KEY=${GAIA_API_KEY:-}
     restart: unless-stopped 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:${REDIS_PORT:-6379}"
+    command: redis-server --appendonly yes
+    volumes:
+      - ./.data/redis:/data

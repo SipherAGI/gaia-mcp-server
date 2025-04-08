@@ -10,7 +10,13 @@ export class Config {
     };
     gaia: {
       apiUrl: string;
-      apiKey: string;
+    };
+    redis?: {
+      url?: string;
+      host?: string;
+      port?: number;
+      password?: string;
+      keyPrefix?: string;
     };
   };
 
@@ -26,9 +32,19 @@ export class Config {
       },
       gaia: {
         apiUrl: process.env.GAIA_API_URL ?? 'https://artventure-api.sipher.gg',
-        apiKey: process.env.GAIA_API_KEY ?? '',
       },
     };
+
+    // Only add Redis config if Redis URL or host is provided
+    if (process.env.REDIS_URL || process.env.REDIS_HOST) {
+      this.config.redis = {
+        url: process.env.REDIS_URL,
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : undefined,
+        password: process.env.REDIS_PASSWORD,
+        keyPrefix: process.env.REDIS_KEY_PREFIX || 'gaia-mcp:sessions:',
+      };
+    }
   }
 
   public static getInstance(): Config {
@@ -48,13 +64,20 @@ export class Config {
 
   public get gaiaConfig(): {
     apiUrl: string;
-    apiKey: string;
   } {
     return this.config.gaia;
   }
 
-  public setGaiaApiKey(apiKey: string) {
-    this.config.gaia.apiKey = apiKey;
+  public get redisConfig():
+    | {
+        url?: string;
+        host?: string;
+        port?: number;
+        password?: string;
+        keyPrefix?: string;
+      }
+    | undefined {
+    return this.config.redis;
   }
 }
 

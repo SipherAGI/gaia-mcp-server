@@ -7,6 +7,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Redis Integration](#redis-integration)
 - [Logging](#logging)
 - [Usage](#usage)
   - [Using Stdio Method](#using-stdio-method)
@@ -53,9 +54,59 @@ MCP_SERVER_SSE_PORT=3000
 GAIA_API_URL='https://artventure-api.sipher.gg'
 GAIA_API_KEY='your-api-key-here'
 
+# Redis Configuration (optional)
+REDIS_URL='redis://username:password@host:port'
+# Or use individual connection parameters
+REDIS_HOST='localhost'
+REDIS_PORT=6379
+REDIS_PASSWORD='your-redis-password'
+REDIS_KEY_PREFIX='gaia-mcp:sessions:'
+
 # Logging
 LOG_LEVEL='info' # debug, info, warn, error, fatal
 ```
+
+## Redis Integration
+
+The Gaia MCP Server can use Redis for session storage, which is particularly useful for deployments with multiple server instances.
+
+### Configuration
+
+Redis can be configured in one of two ways:
+
+1. **Connection String**: Use the `REDIS_URL` environment variable to specify a complete Redis connection string.
+
+   ```
+   REDIS_URL='redis://username:password@host:port'
+   ```
+
+2. **Individual Parameters**: Specify individual connection parameters using separate environment variables.
+   ```
+   REDIS_HOST='localhost'
+   REDIS_PORT=6379
+   REDIS_PASSWORD='your-redis-password'
+   REDIS_KEY_PREFIX='gaia-mcp:sessions:'
+   ```
+
+### Fallback Mechanism
+
+The server includes a fallback mechanism to in-memory storage if:
+
+- Redis is not configured
+- Redis connection fails
+- Redis operations encounter errors
+
+This ensures that the server remains functional even when Redis is unavailable, with appropriate logging to indicate the fallback.
+
+### Session Data Storage
+
+When Redis is configured, the server stores:
+
+- API keys for each session
+- Session metadata
+- Session IDs and associations
+
+Session data in Redis automatically expires after 24 hours of inactivity to prevent stale data accumulation.
 
 ## Logging
 
@@ -82,16 +133,16 @@ The application uses a centralized logger module located at `src/utils/logger.ts
 
 ```typescript
 // Import the default logger
-import { logger } from "./utils/logger";
+import { logger } from './utils/logger';
 
 // Use the logger
-logger.info("Application started");
+logger.info('Application started');
 
 // Create a custom logger
-import { createLogger } from "./utils/logger";
+import { createLogger } from './utils/logger';
 const customLogger = createLogger({
-  name: "my-component",
-  level: "debug",
+  name: 'my-component',
+  level: 'debug',
 });
 ```
 
@@ -104,13 +155,13 @@ Logs are formatted using `pino-pretty` in development mode for better readabilit
 The server supports custom logger injection. When creating a `GaiaMcpServer` instance, you can provide your own Pino logger:
 
 ```typescript
-import { createLogger } from "./utils/logger";
-import { GaiaMcpServer } from "./mcp/gaia-mcp-server";
+import { createLogger } from './utils/logger';
+import { GaiaMcpServer } from './mcp/gaia-mcp-server';
 
 // Create custom logger
 const logger = createLogger({
-  name: "my-app",
-  level: "debug",
+  name: 'my-app',
+  level: 'debug',
 });
 
 // Pass custom logger to server
@@ -119,7 +170,7 @@ const server = new GaiaMcpServer({
     apiUrl: process.env.GAIA_API_URL,
     apiKey: process.env.GAIA_API_KEY,
   },
-  logger: logger.child({ component: "GaiaMcpServer" }),
+  logger: logger.child({ component: 'GaiaMcpServer' }),
 });
 ```
 
@@ -131,13 +182,13 @@ Tool handlers receive a logger instance through the context parameter, which can
 // In a tool handler
 handler: async (args, context) => {
   // Get logger from context or fallback to console
-  const logger = context?.logger?.child({ tool: "my-tool" }) || console;
+  const logger = context?.logger?.child({ tool: 'my-tool' }) || console;
 
-  logger.info("Starting tool operation", { args });
+  logger.info('Starting tool operation', { args });
 
   // Tool implementation...
 
-  logger.info("Tool operation completed");
+  logger.info('Tool operation completed');
 };
 ```
 
@@ -186,11 +237,11 @@ Client-side JavaScript example:
 
 ```javascript
 // Establish SSE connection
-const eventSource = new EventSource("http://localhost:3000/sse");
-const sessionId = ""; // Will be populated from the first message
+const eventSource = new EventSource('http://localhost:3000/sse');
+const sessionId = ''; // Will be populated from the first message
 
 // Listen for messages
-eventSource.onmessage = (event) => {
+eventSource.onmessage = event => {
   const data = JSON.parse(event.data);
 
   // Store session ID from first message
@@ -198,20 +249,20 @@ eventSource.onmessage = (event) => {
     sessionId = data.sessionId;
   }
 
-  console.log("Received:", data);
+  console.log('Received:', data);
 };
 
 // Send a message
 async function sendMessage(content) {
-  await fetch("http://localhost:3000/messages", {
-    method: "POST",
+  await fetch('http://localhost:3000/messages', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       sessionId,
       message: {
-        type: "message",
+        type: 'message',
         data: { content },
       },
     }),

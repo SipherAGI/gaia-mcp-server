@@ -6,7 +6,6 @@ import { logger } from './utils/logger.js';
 const gaiaMcpServer = new GaiaMcpServer({
   gaia: {
     apiUrl: config.gaiaConfig.apiUrl,
-    apiKey: config.gaiaConfig.apiKey,
   },
   logger: logger.child({ component: 'GaiaMcpServer' }),
 });

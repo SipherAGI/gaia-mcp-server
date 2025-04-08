@@ -8,8 +8,8 @@ const gaiaMcpServer = new GaiaMcpServer({
   },
   gaia: {
     apiUrl: config.gaiaConfig.apiUrl,
-    apiKey: config.gaiaConfig.apiKey,
   },
+  redis: config.redisConfig,
   logger: logger.child({ component: 'GaiaMcpServer', mode: 'SSE' }),
 });
 

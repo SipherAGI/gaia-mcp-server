@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 import { pino } from 'pino';
 
@@ -18,35 +19,45 @@ import { pino } from 'pino';
 export function createLogger(options?: { name?: string; level?: string }) {
   const level = options?.level || process.env.LOG_LEVEL || 'info';
 
-  // Create log directory if it doesn't exist
   if (level === 'silent') {
-    const logDir = path.join(process.cwd(), 'logs');
+    // Get the absolute path to the server directory using import.meta.url (ES modules)
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const currentDir = path.dirname(currentFilePath);
+    const serverDir = path.resolve(currentDir, '..', '..');
+
+    // Create log directory if it doesn't exist
+    const logDir = path.join(serverDir, 'logs');
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
+
+    const transport = {
+      target: 'pino/file',
+      options: {
+        destination: path.join(logDir, `${options?.name || 'app'}.log`),
+        mkdir: true,
+      },
+    };
+
+    return pino({
+      name: options?.name,
+      level,
+      transport,
+    });
+  } else {
+    const transport = {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname',
+      },
+    };
+
+    return pino({
+      name: options?.name,
+      level,
+      transport,
+    });
   }
-
-  const transport =
-    level === 'silent'
-      ? {
-          target: 'pino/file',
-          options: {
-            destination: path.join(process.cwd(), 'logs', `${options?.name || 'app'}.log`),
-            mkdir: true,
-          },
-        }
-      : {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname',
-          },
-        };
-
-  return pino({
-    name: options?.name,
-    level,
-    transport,
-  });
 }

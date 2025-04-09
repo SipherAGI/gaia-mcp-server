@@ -61,7 +61,8 @@ export class GaiaMcpServer {
     this.initialize();
 
     this.logger.info('Starting server with STDIO transport');
-    await this.server.connect(new StdioServerTransport());
+    const transport = new StdioServerTransport();
+    await this.server.connect(transport);
   }
 
   public async startSSE(sseCfg: SSEConfig) {

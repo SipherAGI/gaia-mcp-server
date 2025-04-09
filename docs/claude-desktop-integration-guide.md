@@ -21,9 +21,11 @@ The Gaia MCP Server implements the Model Context Protocol (MCP), which allows la
 Before integrating with the MCP server, you need a Gaia API key:
 
 1. Create an account or log in at [Gaia's website](https://protogaia.com)
-2. Navigate to your account settings
-3. Generate a new API key
-4. Copy the API key for use in the next steps
+2. Click on your profile picture in the top-right corner.
+3. Select "My Account" from the dropdown menu.
+4. Navigate to the "Security" section.
+5. Look for "API Key" and create new API Key.
+6. Copy the key to use in the next step.
 
 ### 2. Configure Claude Desktop
 

@@ -48,7 +48,7 @@ export function createTool<P extends ZodRawShape, R>({
   name: string;
   description: string;
   parameters: z.ZodObject<P>;
-  handler: (args: z.infer<z.ZodObject<P>>, context?: ToolContext) => R | Promise<R>;
+  handler: (args: z.infer<z.ZodObject<P>>, context: ToolContext) => R | Promise<R>;
 }): Tool {
   // Return the original Zod schema objects directly instead of converting them
   // This matches how test-tool is registered
@@ -56,7 +56,7 @@ export function createTool<P extends ZodRawShape, R>({
     name,
     description,
     parameters: parameters.shape,
-    handler: async (args: Record<string, any>, context?: ToolContext) => {
+    handler: async (args: Record<string, any>, context: ToolContext) => {
       const result = await handler(args as z.infer<z.ZodObject<P>>, context);
 
       // If result is already a CallToolResult, return it directly

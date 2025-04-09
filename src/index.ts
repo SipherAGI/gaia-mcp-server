@@ -1,42 +1,59 @@
-import { Config } from './config/index.js';
-import { GaiaMcpServer } from './mcp/gaia-mcp-server.js';
-import { logger } from './utils/logger.js';
+import { program } from 'commander';
 
-// Main async function to ensure we can use await
-async function main() {
-  try {
-    logger.info(
-      'Starting server initialization, waiting for configuration to be fully resolved...',
-    );
+import { getConfig } from './config/index.js';
+import { GaiaMcpServer } from './mcp/server.js';
+import { DEFAULT_GAIA_API_URL } from './utils/constants.js';
+import { createLogger } from './utils/logger.js';
+import { RedisClient } from './utils/redis-client.js';
 
-    // Get fully initialized config with all resolved SSM parameters
-    // This will wait until all parameters are resolved before continuing
-    const config = await Config.getInitializedInstance();
+program.name('gaia-mcp-server').description('Gaia MCP Server').version('1.0.0');
 
-    if (!Config.isInitialized()) {
-      throw new Error('Configuration failed to initialize completely');
-    }
+program
+  .command('sse')
+  .description('Start the remote MCP server with SSE')
+  .action(async () => {
+    const config = await getConfig();
+    const logger = createLogger({ name: 'GaiaMcpServer', level: config.logLevel });
 
-    logger.info('Configuration fully initialized, starting stdio server');
-
-    // Create server with logger
     const gaiaMcpServer = new GaiaMcpServer({
-      gaia: {
-        apiUrl: config.gaiaConfig.apiUrl,
-      },
-      logger: logger.child({ component: 'GaiaMcpServer', mode: 'STDIO' }),
+      apiUrl: config.getEnv('GaiaApiUrl') ?? DEFAULT_GAIA_API_URL,
+      logger,
     });
 
-    // Start server with stdio transport
-    await gaiaMcpServer.start();
-  } catch (err) {
-    logger.error({ err }, 'Error starting server');
-    process.exit(1);
-  }
-}
+    const redisClient = new RedisClient({
+      url: config.getEnv('RedisUrl') ?? '',
+      logger,
+    });
 
-// Start the application
-main().catch(err => {
-  logger.error({ err }, 'Unhandled error in main');
-  process.exit(1);
-});
+    await gaiaMcpServer.startSSE({
+      port: config.ssePort,
+      redisClient,
+    });
+  });
+
+program
+  .command('stdio')
+  .description('Start the local MCP server with stdio')
+  .option('--api-url <api-url>', 'The Gaia API URL to use for local MCP server')
+  .option('--api-key <api-key>', 'The Gaia API key to use for local MCP server')
+  .action(async options => {
+    // API key is required
+    if (!options.apiKey) {
+      throw new Error('API key is required');
+    }
+
+    // Initialize config with silent mode to avoid logger logs to stdout
+    // It maybe conflicts with stdio transport
+    const config = await getConfig({ silent: true });
+    const logger = createLogger({ name: 'GaiaMcpServer', level: config.logLevel });
+
+    const gaiaMcpServer = new GaiaMcpServer({
+      apiUrl: options.apiUrl ?? config.getEnv('GaiaApiUrl') ?? DEFAULT_GAIA_API_URL,
+      apiKey: options.apiKey,
+      logger,
+    });
+
+    await gaiaMcpServer.startStdio();
+  });
+
+program.parse(process.argv);

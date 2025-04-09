@@ -32,21 +32,22 @@ Before integrating with the MCP server, you need a Gaia API key:
 1. Open Claude Desktop
 2. Click on your profile picture or icon in the top-right corner
 3. Select "Settings" from the dropdown menu
-4. Navigate to the "Advanced" or "Experimental Features" section
-5. Look for "Model Context Protocol" or "External Tools" settings
+4. Navigate to the "Extensions" section
+5. Click on "Add new extension"
 
 ### 3. Add the Gaia MCP Server
 
-In the MCP configuration section:
+In the Extensions configuration section:
 
-1. Click "Add New MCP Server" or similar option
-2. Enter the following details:
+1. Click "Add New Extension"
+2. Select "Model Context Protocol (MCP)" as the extension type
+3. Enter the following details:
 
    - **Name:** Gaia Image Generation
    - **Server URL:** `https://gaia-mcp.sipher.gg/sse?apiKey=YOUR_GAIA_API_KEY`
    - Replace `YOUR_GAIA_API_KEY` with the actual API key you obtained
 
-3. Save the configuration
+4. Click "Add Extension" to save the configuration
 
 ### 4. Test the Integration
 
@@ -79,6 +80,8 @@ Here are some example prompts you can use to test the integration:
 - "Create a photorealistic portrait of a young woman with blonde hair"
 - "Draw a cute cartoon penguin on a snowboard"
 - "Generate an image of a tropical beach at sunset"
+- "Take this image and enhance the faces in it" (when sharing an image with Claude)
+- "Upscale this image to a higher resolution" (when sharing an image with Claude)
 
 ## Troubleshooting
 

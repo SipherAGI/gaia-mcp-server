@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaImageGeneratorSimpleParamsSchema } from '../../api/types.js';
-import { logger as defaultLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
 export const generateImageTool = createTool({
@@ -12,18 +12,17 @@ export const generateImageTool = createTool({
   parameters: gaiaImageGeneratorSimpleParamsSchema,
   handler: async (
     args: z.infer<typeof gaiaImageGeneratorSimpleParamsSchema>,
-    context?: ToolContext,
+    context: ToolContext,
   ) => {
     // Get logger from context or fallback to default logger
     const logger =
-      context?.logger?.child({ tool: 'generate-image' }) ||
-      defaultLogger.child({ tool: 'generate-image' });
+      context.logger?.child({ tool: 'generate-image' }) || createLogger({ name: 'generate-image' });
 
     logger.info('Starting image generation', { args: JSON.stringify(args) });
 
     const apiClient = new ApiClient({
-      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? 'https://api.protogaia.com',
-      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
+      baseUrl: context.apiConfig.url,
+      apiKey: context.apiConfig.key,
       logger,
     });
 

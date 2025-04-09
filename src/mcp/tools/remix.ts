@@ -2,22 +2,21 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaRemixParamsSchema } from '../../api/types.js';
-import { logger as defaultLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
 export const remixTool = createTool({
   name: 'remix',
   description: 'Create new variations of an existing image',
   parameters: gaiaRemixParamsSchema,
-  handler: async (args, context?: ToolContext) => {
-    const logger =
-      context?.logger?.child({ tool: 'remix' }) || defaultLogger.child({ tool: 'remix' });
+  handler: async (args, context: ToolContext) => {
+    const logger = context.logger?.child({ tool: 'remix' }) || createLogger({ name: 'remix' });
 
     logger.info('Starting remix operation', { args: JSON.stringify(args) });
 
     const apiClient = new ApiClient({
-      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? 'https://api.protogaia.com',
-      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
+      baseUrl: context.apiConfig.url,
+      apiKey: context.apiConfig.key,
       logger,
     });
 

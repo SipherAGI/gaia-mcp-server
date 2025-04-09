@@ -195,7 +195,7 @@ The server supports custom logger injection. When creating a `GaiaMcpServer` ins
 
 ```typescript
 import { createLogger } from './utils/logger';
-import { GaiaMcpServer } from './mcp/gaia-mcp-server';
+import { GaiaMcpServer } from './mcp/server';
 
 // Create custom logger
 const logger = createLogger({
@@ -205,9 +205,7 @@ const logger = createLogger({
 
 // Pass custom logger to server
 const server = new GaiaMcpServer({
-  gaia: {
-    apiUrl: process.env.GAIA_API_URL,
-  },
+  apiUrl: process.env.GAIA_API_URL,
   logger: logger.child({ component: 'GaiaMcpServer' }),
 });
 ```
@@ -232,7 +230,7 @@ handler: async (args, context) => {
 
 ## Usage
 
-The server can be run in two modes: stdio or SSE.
+The server can be run in two modes: stdio or SSE. You can choose which mode to run using the command-line interface.
 
 ### Using Stdio Method
 
@@ -241,10 +239,20 @@ The stdio method is useful for direct communication with the server via standard
 To start the server in stdio mode:
 
 ```bash
-node dist/index.js
+# Build the project first
+pnpm build
+
+# Run the server in stdio mode with an API key
+node dist/index.js stdio --api-key=your-api-key
 ```
 
-With this method, communication with the server happens through stdin/stdout, following the MCP protocol format.
+You can also specify a custom API URL:
+
+```bash
+node dist/index.js stdio --api-key=your-api-key --api-url=https://your-custom-api-url
+```
+
+With the stdio method, communication with the server happens through stdin/stdout, following the MCP protocol format.
 
 Example of sending a message through stdio:
 
@@ -259,7 +267,11 @@ The SSE method allows for server-sent events communication over HTTP, making it 
 To start the server in SSE mode:
 
 ```bash
-node dist/sse.js
+# Build the project first
+pnpm build
+
+# Run the server in SSE mode
+node dist/index.js sse
 ```
 
 The server will start on the port specified in your .env file (default: 3000).
@@ -328,6 +340,7 @@ When running in SSE mode, the following endpoints are available:
 - `GET /sse`: Establishes an SSE connection
 - `POST /messages`: Sends messages to the server
 - `GET /health`: Health check endpoint
+- `GET /`: Basic information about the server
 
 ## Supported Tools
 
@@ -353,12 +366,12 @@ This document includes:
 - Production build instructions
 - Configuration details
 
-To register new tools for the MCP server, edit the `registerTools` method in `src/mcp/gaia-mcp-server.ts`.
+To register new tools for the MCP server, edit the `registerTools` method in `src/mcp/server.ts`.
 
 To add new functionality:
 
-1. Create a new tool implementation
-2. Register it in the server
+1. Create a new tool implementation in the `src/mcp/tools` directory
+2. Register it in the `tools` array in `src/mcp/tools/index.ts`
 3. Rebuild and test
 
 ## Docker Deployment
@@ -368,7 +381,7 @@ To add new functionality:
 To build the Docker image for the SSE server:
 
 ```bash
-docker build -t gaia-mcp-sse .
+docker build -t gaia-mcp-server .
 ```
 
 ### Running with Docker
@@ -376,7 +389,10 @@ docker build -t gaia-mcp-sse .
 To run the SSE server using Docker:
 
 ```bash
-docker run -p 3000:3000 -e MCP_SERVER_SSE_PORT=3000 -e GAIA_API_URL=https://your-api-url gaia-mcp-sse
+docker run -p 3000:3000 \
+  -e MCP_SERVER_SSE_PORT=3000 \
+  -e GAIA_API_URL=https://your-api-url \
+  gaia-mcp-server
 ```
 
 ### Using Docker Compose
@@ -393,6 +409,11 @@ This will build and start the SSE server with the environment variables specifie
 
 - `MCP_SERVER_SSE_PORT`: Port for the SSE server (default: 3000)
 - `GAIA_API_URL`: URL for the Gaia API (default: https://artventure-api.sipher.gg)
+- `REDIS_URL`: Redis connection URL for session storage
+- `REDIS_KEY_PREFIX`: Prefix for Redis keys (default: gaia-mcp:sessions:)
+- `LOG_LEVEL`: Logging level (debug, info, warn, error, fatal) (default: info)
+- `AWS_REGION`: AWS region for SSM parameters (default: ap-southeast-1)
+- `AWS_PROFILE`: AWS profile for credentials (local development only)
 
 ### Cloud Deployment
 
@@ -407,13 +428,13 @@ Example for AWS ECS:
 
 ```bash
 # Build the image
-docker build -t gaia-mcp-sse .
+docker build -t gaia-mcp-server .
 
 # Tag the image for ECR
-docker tag gaia-mcp-sse:latest your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-sse:latest
+docker tag gaia-mcp-server:latest your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-server:latest
 
 # Push to ECR
-docker push your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-sse:latest
+docker push your-aws-account-id.dkr.ecr.your-region.amazonaws.com/gaia-mcp-server:latest
 ```
 
 Then deploy using AWS ECS console or CLI, ensuring to set the environment variables.

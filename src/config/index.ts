@@ -1,213 +1,130 @@
 import dotenv from 'dotenv';
+import { Logger } from 'pino';
 
 import { isSSMParameterReference, resolveSSMParameter } from '../utils/aws-ssm.js';
-import { resolveConfig } from '../utils/config-resolver.js';
-import { logger } from '../utils/logger.js';
+import {
+  DEFAULT_GAIA_API_URL,
+  DEFAULT_REDIS_KEY_PREFIX,
+  DEFAULT_REDIS_URL,
+  DEFAULT_SSE_PORT,
+} from '../utils/constants.js';
+import { createLogger } from '../utils/logger.js';
 
-export class Config {
-  private static initialized = false;
-  private static initializing = false;
+let config: Config | null = null;
+
+class Config {
   private static instance: Config;
-  private static initializationPromise: Promise<void> | null = null;
-  private config: {
-    mcpServer: {
-      sse: {
-        port: number;
-      };
-    };
-    gaia: {
-      apiUrl: string;
-    };
-    redis?: {
-      url: string;
-      keyPrefix?: string;
-    };
+  private readonly logger: Logger;
+  private initialized = false;
+  private envs: Record<string, string> = {
+    GaiaApiUrl: 'GAIA_API_URL',
+    RedisUrl: 'REDIS_URL',
+    RedisKeyPrefix: 'REDIS_KEY_PREFIX',
+    LogLevel: 'LOG_LEVEL',
   };
 
-  private constructor() {
+  private constructor(silent = false) {
     // init dotenv
     dotenv.config();
 
-    this.config = {
-      mcpServer: {
-        sse: {
-          port: 3000,
-        },
-      },
-      gaia: {
-        apiUrl: process.env.GAIA_API_URL ?? 'https://artventure-api.sipher.gg',
-      },
-    };
+    if (silent) {
+      process.env.LOG_LEVEL = 'silent';
+    }
 
-    // Handle Redis configuration - prioritize URL or build it from components
-    if (process.env.REDIS_URL || process.env.REDIS_HOST) {
-      let redisUrl: string;
+    // init root logger
+    this.logger = createLogger({ name: 'Config', level: process.env.LOG_LEVEL || 'info' });
+  }
 
-      // If REDIS_URL is provided, use it directly
-      if (process.env.REDIS_URL) {
-        redisUrl = process.env.REDIS_URL;
-      }
-      // Otherwise, build URL from individual components
-      else if (process.env.REDIS_HOST) {
-        const host = process.env.REDIS_HOST;
-        const port = process.env.REDIS_PORT || '6379';
-        const password = process.env.REDIS_PASSWORD
-          ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@`
-          : '';
-
-        redisUrl = `redis://${password}${host}:${port}`;
-      }
-      // Fallback (shouldn't happen due to the if condition above)
-      else {
-        redisUrl = 'redis://localhost:6379';
+  private async resolveSSMParameters() {
+    // Iterate overall env vars
+    for (const [key, value] of Object.entries(process.env)) {
+      if (value === undefined || typeof value !== 'string') {
+        continue;
       }
 
-      // Create Redis config with the URL
-      this.config.redis = {
-        url: redisUrl,
-        keyPrefix: process.env.REDIS_KEY_PREFIX || 'gaia-mcp:sessions:',
-      };
+      // Check if the value is a valid SSM parameter reference
+      if (isSSMParameterReference(value)) {
+        // Resolve the SSM parameter
+        const resolvedValue = await resolveSSMParameter(value);
+        // Update the env var with the resolved value
+        process.env[key] = resolvedValue;
+
+        this.logger.debug({ key, value }, 'Resolved SSM parameter');
+      }
+    }
+
+    this.logger.info('Config initialized');
+  }
+
+  private isInitialized() {
+    if (!this.initialized) {
+      throw new Error('Config not initialized');
     }
   }
 
-  /**
-   * Initialize the configuration, resolving any SSM parameter references
-   */
-  private static async initialize(): Promise<void> {
-    if (Config.initialized) {
-      return;
-    }
-
-    if (Config.initializing && Config.initializationPromise) {
-      return Config.initializationPromise;
-    }
-
-    Config.initializing = true;
-    const configLogger = logger.child({ component: 'Config' });
-    configLogger.info('Starting configuration initialization');
-
-    Config.initializationPromise = (async () => {
-      try {
-        // Create the instance if it doesn't exist
-        if (!Config.instance) {
-          Config.instance = new Config();
-        }
-
-        // Resolve any SSM parameter references in the config
-        if (
-          Config.instance.config.redis?.url &&
-          isSSMParameterReference(Config.instance.config.redis.url)
-        ) {
-          configLogger.info(
-            { url: Config.instance.config.redis.url },
-            'Resolving SSM parameter for Redis URL',
-          );
-
-          try {
-            const originalUrl = Config.instance.config.redis.url;
-            const resolvedUrl = await resolveSSMParameter(originalUrl);
-
-            // Make sure the resolved URL is valid for Redis
-            if (!resolvedUrl.startsWith('redis://') && !resolvedUrl.startsWith('rediss://')) {
-              configLogger.warn(
-                { resolvedUrl },
-                'Resolved SSM parameter is not a valid Redis URL. Disabling Redis.',
-              );
-              Config.instance.config.redis = undefined;
-            } else {
-              Config.instance.config.redis.url = resolvedUrl;
-            }
-          } catch (error) {
-            configLogger.error(
-              { error },
-              'Failed to resolve Redis URL SSM parameter. Disabling Redis.',
-            );
-            // If we can't resolve the SSM parameter, disable Redis entirely
-            Config.instance.config.redis = undefined;
-          }
-        }
-
-        // Resolve any other SSM parameters in the config
-        Config.instance.config = await resolveConfig(Config.instance.config);
-
-        Config.initialized = true;
-        Config.initializing = false;
-        configLogger.info('Configuration successfully initialized with resolved SSM parameters');
-      } catch (error) {
-        Config.initializing = false;
-        configLogger.error({ error }, 'Failed to initialize configuration with SSM parameters');
-        throw error;
-      }
-    })();
-
-    return Config.initializationPromise;
-  }
-
-  /**
-   * Get the Config instance, initializing it if necessary.
-   * This doesn't wait for SSM parameter resolution to complete.
-   * @returns The Config instance
-   */
-  public static getInstance(): Config {
+  public static getConfig(silent = false): Config {
     if (!Config.instance) {
-      Config.instance = new Config();
-      // Start the initialization process asynchronously
-      Config.initialize().catch(err => {
-        logger.error({ err }, 'Failed to initialize config with SSM parameters');
-      });
-    }
-    return Config.instance;
-  }
-
-  /**
-   * Get the Config instance, ensuring all SSM parameters are resolved.
-   * This method waits for the initialization to complete before returning.
-   * @returns A promise that resolves to the Config instance
-   */
-  public static async getInitializedInstance(): Promise<Config> {
-    if (!Config.instance) {
-      Config.instance = new Config();
-    }
-
-    if (!Config.initialized) {
-      await Config.initialize();
+      Config.instance = new Config(silent);
     }
 
     return Config.instance;
   }
 
-  /**
-   * Check if the configuration has been fully initialized
-   * @returns True if config is initialized, false otherwise
-   */
-  public static isInitialized(): boolean {
-    return Config.initialized;
+  public async initialize() {
+    await this.resolveSSMParameters();
+
+    this.initialized = true;
   }
 
-  public get mcpServerConfig(): {
-    sse: {
-      port: number;
-    };
-  } {
-    return this.config.mcpServer;
+  public getEnv(key: keyof typeof this.envs) {
+    this.isInitialized();
+
+    const envKey = this.envs[key];
+    return envKey ? process.env[envKey] : undefined;
   }
 
-  public get gaiaConfig(): {
-    apiUrl: string;
-  } {
-    return this.config.gaia;
+  public getEnvs(keys: (keyof typeof this.envs)[]) {
+    this.isInitialized();
+
+    return keys.reduce(
+      (acc, key) => {
+        acc[key] = this.getEnv(key);
+        return acc;
+      },
+      {} as Record<keyof typeof this.envs, string | undefined>,
+    );
   }
 
-  public get redisConfig():
-    | {
-        url: string;
-        keyPrefix?: string;
-      }
-    | undefined {
-    return this.config.redis;
+  public get gaiaApiUrl(): string {
+    return this.getEnv('GaiaApiUrl') ?? DEFAULT_GAIA_API_URL;
+  }
+
+  public get ssePort(): number {
+    return parseInt(this.getEnv('SSEPort') ?? DEFAULT_SSE_PORT.toString());
+  }
+
+  public get redisUrl(): string {
+    return this.getEnv('RedisUrl') ?? DEFAULT_REDIS_URL;
+  }
+
+  public get redisKeyPrefix(): string {
+    return this.getEnv('RedisKeyPrefix') ?? DEFAULT_REDIS_KEY_PREFIX;
+  }
+
+  public get logLevel(): string {
+    return this.getEnv('LogLevel') ?? 'info';
   }
 }
 
-// Not exporting a default instance to encourage using getInitializedInstance
-// This would be a breaking change, so keeping the default export for backwards compatibility
-export default Config.getInstance();
+type getConfigOptions = {
+  silent?: boolean;
+};
+
+export async function getConfig(options?: getConfigOptions): Promise<Config> {
+  if (!config) {
+    config = Config.getConfig(options?.silent);
+    await config.initialize();
+  }
+
+  return config;
+}

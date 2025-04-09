@@ -13,7 +13,7 @@ import {
   GaiaImagesResponse,
 } from './types.js';
 import { fetchImage } from '../utils/fetch-image.js';
-import { logger as defaultLogger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
 const REQUEST_TIMEOUT = 1000 * 60; // 60 seconds timeout for API requests
@@ -59,7 +59,7 @@ export class ApiClient {
     }
 
     // Use provided logger or create a child logger from the default logger
-    this.logger = logger || defaultLogger.child({ component: 'ApiClient' });
+    this.logger = logger || createLogger({ name: 'ApiClient' });
   }
 
   /**

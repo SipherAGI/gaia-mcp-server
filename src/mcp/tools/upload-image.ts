@@ -2,7 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
 
 import { ApiClient } from '../../api/client.js';
-import { logger as defaultLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
 const uploadImageSchema = z.object({
@@ -13,13 +13,12 @@ export const uploadImageTool = createTool({
   name: 'upload-image',
   description: 'Upload images to the Gaia platform',
   parameters: uploadImageSchema,
-  handler: async (args: z.infer<typeof uploadImageSchema>, context?: ToolContext) => {
+  handler: async (args: z.infer<typeof uploadImageSchema>, context: ToolContext) => {
     const { imageUrls } = args;
 
     // Get logger from context or fallback to default logger
     const logger =
-      context?.logger?.child({ tool: 'upload-image' }) ||
-      defaultLogger.child({ tool: 'upload-image' });
+      context.logger?.child({ tool: 'upload-image' }) || createLogger({ name: 'upload-image' });
 
     logger.info('Starting image upload', { count: imageUrls.length, urls: imageUrls });
 
@@ -36,8 +35,8 @@ export const uploadImageTool = createTool({
     }
 
     const apiClient = new ApiClient({
-      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? 'https://api.protogaia.com',
-      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
+      baseUrl: context.apiConfig.url,
+      apiKey: context.apiConfig.key,
       logger,
     });
 

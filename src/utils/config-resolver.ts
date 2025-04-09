@@ -1,7 +1,7 @@
 import { isSSMParameterReference, resolveSSMParameter } from './aws-ssm.js';
-import { logger } from './logger.js';
+import { createLogger } from './logger.js';
 
-const configLogger = logger.child({ component: 'ConfigResolver' });
+const configLogger = createLogger({ name: 'ConfigResolver' });
 
 /**
  * Resolve a configuration value, handling SSM parameter references

@@ -1,8 +1,6 @@
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { fromIni } from '@aws-sdk/credential-providers';
 
-import { logger } from './logger.js';
-
 // Cache for SSM parameters to avoid repeated API calls
 const parameterCache: Record<string, { value: string; timestamp: number }> = {};
 // Cache expiration time in milliseconds (default: 5 minutes)
@@ -13,7 +11,6 @@ const CACHE_EXPIRATION_MS = 5 * 60 * 1000;
  */
 export class SSMParameterClient {
   private client: SSMClient;
-  private logger = logger.child({ component: 'SSMParameterClient' });
 
   constructor(region?: string) {
     const clientConfig: any = {
@@ -22,7 +19,6 @@ export class SSMParameterClient {
 
     // Use AWS profile if specified (for local development)
     if (process.env.AWS_PROFILE) {
-      this.logger.info({ profile: process.env.AWS_PROFILE }, 'Using AWS profile for credentials');
       clientConfig.credentials = fromIni({
         profile: process.env.AWS_PROFILE,
       });
@@ -42,36 +38,29 @@ export class SSMParameterClient {
     const now = Date.now();
 
     if (cachedParam && now - cachedParam.timestamp < CACHE_EXPIRATION_MS) {
-      this.logger.debug({ parameterName }, 'Using cached SSM parameter');
       return cachedParam.value;
     }
 
-    try {
-      this.logger.debug({ parameterName }, 'Fetching SSM parameter');
-      const command = new GetParameterCommand({
-        Name: parameterName,
-        WithDecryption: true, // Automatically decrypt SecureString parameters
-      });
+    const command = new GetParameterCommand({
+      Name: parameterName,
+      WithDecryption: true, // Automatically decrypt SecureString parameters
+    });
 
-      const response = await this.client.send(command);
+    const response = await this.client.send(command);
 
-      if (!response.Parameter?.Value) {
-        throw new Error(`Parameter ${parameterName} not found or has no value`);
-      }
-
-      const value = response.Parameter.Value;
-
-      // Cache the result
-      parameterCache[parameterName] = {
-        value,
-        timestamp: now,
-      };
-
-      return value;
-    } catch (error) {
-      this.logger.error({ error, parameterName }, 'Failed to get SSM parameter');
-      throw error;
+    if (!response.Parameter?.Value) {
+      throw new Error(`Parameter ${parameterName} not found or has no value`);
     }
+
+    const value = response.Parameter.Value;
+
+    // Cache the result
+    parameterCache[parameterName] = {
+      value,
+      timestamp: now,
+    };
+
+    return value;
   }
 }
 
@@ -119,17 +108,14 @@ export async function resolveSSMParameter(reference: string): Promise<string> {
   }
 
   const parameterName = extractParameterName(reference);
-  logger.debug({ parameterName, reference }, 'Attempting to resolve SSM parameter');
 
   const client = getSSMClient();
   try {
     const value = await client.getParameter(parameterName);
-    logger.debug({ parameterName, reference, value }, 'Successfully resolved SSM parameter');
     return value;
   } catch (error) {
-    logger.error({ error, parameterName, reference }, 'Failed to resolve SSM parameter');
     // Instead of returning the original reference (which causes Redis to try to connect to it as a socket),
     // throw an error to force proper error handling
-    throw new Error(`Failed to resolve SSM parameter: ${parameterName}`);
+    throw new Error(`Failed to resolve SSM parameter: ${parameterName}`, { cause: error });
   }
 }

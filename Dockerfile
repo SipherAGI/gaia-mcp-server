@@ -50,5 +50,5 @@ ENV AWS_REGION=ap-southeast-1
 # Expose the SSE port
 EXPOSE ${MCP_SERVER_SSE_PORT}
 
-# Run the SSE server
-CMD ["node", "dist/sse.js"]
+# Run the SSE server with the new CLI interface
+CMD ["node", "dist/index.js", "sse"]

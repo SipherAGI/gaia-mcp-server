@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
-import { logger as defaultLogger } from '../../utils/logger.js';
+import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
 const upscalerSchema = z.object({
@@ -17,18 +17,18 @@ export const upscalerTool = createTool({
   name: 'upscaler',
   description: 'Enhance the resolution quality of images',
   parameters: upscalerSchema,
-  handler: async (args: z.infer<typeof upscalerSchema>, context?: ToolContext) => {
+  handler: async (args: z.infer<typeof upscalerSchema>, context: ToolContext) => {
     const { image, ratio } = args;
 
     // Get logger from context or fallback to default logger
     const logger =
-      context?.logger?.child({ tool: 'upscaler' }) || defaultLogger.child({ tool: 'upscaler' });
+      context.logger?.child({ tool: 'upscaler' }) || createLogger({ name: 'upscaler' });
 
     logger.info('Starting image upscaling', { image, ratio });
 
     const apiClient = new ApiClient({
-      baseUrl: context?.apiConfig?.url ?? process.env.GAIA_API_URL ?? 'https://api.protogaia.com',
-      apiKey: context?.apiConfig?.key ?? process.env.GAIA_API_KEY,
+      baseUrl: context.apiConfig.url,
+      apiKey: context.apiConfig.key,
       logger,
     });
 

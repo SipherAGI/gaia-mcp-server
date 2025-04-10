@@ -10,7 +10,7 @@ The Gaia MCP Server implements the Model Context Protocol (MCP), which allows la
 
 1. A Claude Desktop application installed on your computer
 2. A Gaia account with an API key
-3. Node.js installed on your machine (v16 or later recommended)
+3. [Node.js](https://nodejs.org/en/download) installed on your machine (v20 or later recommended)
 4. Basic familiarity with terminal/command prompt operations
 
 ## What is stdio Mode?
@@ -41,7 +41,7 @@ Before setting up the local server, you need a Gaia API key:
 2. Clone the Gaia MCP Server repository:
 
    ```bash
-   git clone https://github.com/AtherlabsInc/gaia-mcp-server.git
+   git clone https://github.com/SipherAGI/gaia-mcp-server
    cd gaia-mcp-server
    ```
 
@@ -66,37 +66,41 @@ Before setting up the local server, you need a Gaia API key:
 
 ### 3. Configure Claude Desktop
 
-1. Open Claude Desktop
-2. Click on your profile picture or icon in the top-right corner
-3. Select "Settings" from the dropdown menu
-4. Navigate to the "Extensions" section
-5. Click on "Add new extension"
+1. Open Claude Desktop application
+2. Access Settings from the menu bar:
+   - On Windows: Click on "File" → "Settings"
+   - On macOS: Click on "Claude" → "Settings"
+3. Navigate to the "Developer" tab
+4. Click on "Edit config" button
+5. A file explorer window will open showing the configuration file location
+6. Open the `claude_desktop_config.json` file with any text editor
+7. Replace the contents with the following configuration (or add to existing configuration):
 
-### 4. Add the Gaia MCP Server as a stdio Tool
+```json
+{
+  "mcpServers": {
+    "gaia-mcp-server": {
+      "command": "node",
+      "args": [
+        "/full/path/to/gaia-mcp-server/dist/index.js",
+        "stdio",
+        "--api-key=YOUR_GAIA_API_KEY"
+      ]
+    }
+  }
+}
+```
 
-In the Extensions configuration section:
+8. Important: Replace the following placeholders:
 
-1. Click "Add New Extension"
-2. Select "Model Context Protocol (MCP)" as the extension type
-3. Select "stdio" as the connection type
-4. Enter the following details:
+   - `/full/path/to/gaia-mcp-server`: Enter the absolute path to your cloned repository
+   - `YOUR_GAIA_API_KEY`: Enter your Gaia API key obtained in step 1
 
-   - **Name:** Gaia Image Generation (Local)
-   - **Path to Application:** Full path to the node executable
-     - macOS/Linux Example: `/usr/local/bin/node` or `/usr/bin/node`
-     - Windows Example: `C:\Program Files\nodejs\node.exe`
-   - **Arguments:**
-     ```
-     "/path/to/gaia-mcp-server/dist/index.js" stdio --api-key=YOUR_GAIA_API_KEY
-     ```
-     (Replace `/path/to/gaia-mcp-server` with the actual path to the server directory and `YOUR_GAIA_API_KEY` with your actual API key)
-   - **Working Directory:** Full path to the gaia-mcp-server project folder
-     - macOS/Linux Example: `/home/username/gaia-mcp-server`
-     - Windows Example: `C:\Users\username\gaia-mcp-server`
+9. Save the file and close the text editor
+10. Restart Claude Desktop completely
+11. After restarting, verify the integration by clicking the hammer icon (🔨) within the chat input - you should see Gaia tools in the available tools list
 
-5. Click "Add Extension" to save the configuration
-
-### 5. Test the Integration
+### 4. Test the Integration
 
 1. Start a new conversation with Claude
 2. When you first make a request that might use image generation, Claude may automatically start the Gaia MCP Server process

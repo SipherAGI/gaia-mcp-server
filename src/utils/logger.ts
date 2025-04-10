@@ -31,10 +31,12 @@ export function createLogger(options?: { name?: string; level?: string }) {
       fs.mkdirSync(logDir, { recursive: true });
     }
 
+    const fileName = (options?.name || 'app').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+
     const transport = {
       target: 'pino/file',
       options: {
-        destination: path.join(logDir, `${options?.name || 'app'}.log`),
+        destination: path.join(logDir, `${fileName}.log`),
         mkdir: true,
       },
     };

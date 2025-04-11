@@ -42,10 +42,17 @@ export class GaiaMcpServer {
   constructor(options: GaiaMcpServerOptions) {
     const { apiUrl, apiKey, logger } = options;
 
-    this.server = new McpServer({
-      name: 'GaiaMcpServer',
-      version: '0.0.1',
-    });
+    this.server = new McpServer(
+      {
+        name: 'GaiaMcpServer',
+        version: '0.0.1',
+      },
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     this.apiUrl = apiUrl;
     this.apiKey = apiKey;

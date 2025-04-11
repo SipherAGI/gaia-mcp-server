@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
+import { imageResponseFormatter } from '../../utils/formatter.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -50,13 +51,8 @@ export const upscalerTool = createTool({
         content: [
           {
             type: 'text',
-            text: `Upscaled image`,
+            text: imageResponseFormatter(imageResponse),
           },
-          ...imageResponse.images.map((image: string) => ({
-            type: 'image' as const,
-            data: image,
-            mimeType: 'image/png',
-          })),
         ],
       };
     } catch (error: unknown) {

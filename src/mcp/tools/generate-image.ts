@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaImageGeneratorSimpleParamsSchema } from '../../api/types.js';
+import { imageResponseFormatter } from '../../utils/formatter.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -31,7 +32,10 @@ export const generateImageTool = createTool({
 
       const imageResponse = await apiClient.generateImages({
         recipeId: 'image-generator-simple',
-        params: args,
+        params: {
+          ...args,
+          numberOfImages: 1, // Always generate 1 image
+        },
       });
 
       logger.info(`Successfully generated ${imageResponse.images.length} images`);
@@ -40,13 +44,8 @@ export const generateImageTool = createTool({
         content: [
           {
             type: 'text',
-            text: `Successfully generated ${imageResponse.images.length} images`,
+            text: imageResponseFormatter(imageResponse),
           },
-          ...imageResponse.images.map((image: string) => ({
-            type: 'image' as const,
-            data: image,
-            mimeType: 'image/png',
-          })),
         ],
       };
       return result;
@@ -62,6 +61,7 @@ export const generateImageTool = createTool({
             text: `Failed to generate images: ${errorMessage}`,
           },
         ],
+        isError: true,
       };
     }
   },

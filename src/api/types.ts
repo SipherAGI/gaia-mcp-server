@@ -198,7 +198,7 @@ export const gaiaRecipeTaskSchema = z.object({
 export const gaiaImageGeneratorSimpleParamsSchema = z.object({
   prompt: z.string(),
   seed: z.number().int().optional(),
-  numberOfImages: z.number().int().optional(),
+  // numberOfImages: z.number().int().optional(),
   aspectRatio: z.string().optional(),
   promptStyle: z.string().optional(),
   style: z.string().optional(),

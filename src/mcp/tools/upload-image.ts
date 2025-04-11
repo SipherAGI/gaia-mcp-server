@@ -60,20 +60,6 @@ export const uploadImageTool = createTool({
       logger.info(`Successfully uploaded ${uploadedFiles.length} of ${imageUrls.length} images`);
 
       const successRatio = uploadedFiles.length / imageUrls.length;
-      const imageResultParts: CallToolResult['content'] = [];
-
-      for (const file of uploadedFiles) {
-        if (!file.url) {
-          logger.warn('Uploaded file missing URL', { file });
-          continue;
-        }
-
-        imageResultParts.push({
-          type: 'image',
-          data: file.url,
-          mimeType: 'image/png',
-        });
-      }
 
       // Determine appropriate message based on success rate
       let resultMessage = `Uploaded ${uploadedFiles.length} of ${imageUrls.length} images`;
@@ -85,9 +71,8 @@ export const uploadImageTool = createTool({
         content: [
           {
             type: 'text',
-            text: resultMessage,
+            text: `${resultMessage}\n\n${uploadedFiles.map(file => file.url).join('\n')}`,
           },
-          ...imageResultParts,
         ],
       };
 

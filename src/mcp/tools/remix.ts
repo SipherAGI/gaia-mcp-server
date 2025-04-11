@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaRemixParamsSchema } from '../../api/types.js';
+import { imageResponseFormatter } from '../../utils/formatter.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -34,13 +35,8 @@ export const remixTool = createTool({
         content: [
           {
             type: 'text',
-            text: `Successfully created ${imageResponse.images.length} variations of the image`,
+            text: imageResponseFormatter(imageResponse),
           },
-          ...imageResponse.images.map((image: string) => ({
-            type: 'image' as const,
-            data: image,
-            mimeType: 'image/png',
-          })),
         ],
       };
       return result;

@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaFaceEnhancerParamsSchema } from '../../api/types.js';
+import { imageResponseFormatter } from '../../utils/formatter.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -36,13 +37,8 @@ export const faceEnhancerTool = createTool({
         content: [
           {
             type: 'text',
-            text: `Successfully enhanced face's details in the image`,
+            text: imageResponseFormatter(imageResponse),
           },
-          ...imageResponse.images.map((image: string) => ({
-            type: 'image' as const,
-            data: image,
-            mimeType: 'image/png',
-          })),
         ],
       };
       return result;

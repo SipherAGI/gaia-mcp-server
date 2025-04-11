@@ -2,7 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaFaceEnhancerParamsSchema } from '../../api/types.js';
-import { imageResponseFormatter } from '../../utils/formatter.js';
+import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -31,14 +31,21 @@ export const faceEnhancerTool = createTool({
         params: args,
       });
 
+      if (!imageResponse.images[0]) {
+        throw new Error('No image was generated');
+      }
+
+      const imageResponseContent = await imageResponseToToolResult(imageResponse.images[0]);
+
       logger.info('Face enhancement completed successfully');
 
       const result: CallToolResult = {
         content: [
           {
             type: 'text',
-            text: imageResponseFormatter(imageResponse),
+            text: imageResponseToText(imageResponse),
           },
+          imageResponseContent,
         ],
       };
       return result;

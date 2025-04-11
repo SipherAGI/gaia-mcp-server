@@ -2,7 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaRemixParamsSchema } from '../../api/types.js';
-import { imageResponseFormatter } from '../../utils/formatter.js';
+import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -26,8 +26,17 @@ export const remixTool = createTool({
 
       const imageResponse = await apiClient.generateImages({
         recipeId: 'remix',
-        params: args,
+        params: {
+          ...args,
+          numberOfImages: 1, // Always generate 1 image
+        },
       });
+
+      if (!imageResponse.images[0]) {
+        throw new Error('No image was generated');
+      }
+
+      const imageResponseContent = await imageResponseToToolResult(imageResponse.images[0]);
 
       logger.info(`Successfully created ${imageResponse.images.length} variations`);
 
@@ -35,8 +44,9 @@ export const remixTool = createTool({
         content: [
           {
             type: 'text',
-            text: imageResponseFormatter(imageResponse),
+            text: imageResponseToText(imageResponse),
           },
+          imageResponseContent,
         ],
       };
       return result;

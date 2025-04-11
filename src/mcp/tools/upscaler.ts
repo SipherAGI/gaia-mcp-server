@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
-import { imageResponseFormatter } from '../../utils/formatter.js';
+import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -45,14 +45,21 @@ export const upscalerTool = createTool({
         },
       });
 
+      if (!imageResponse.images[0]) {
+        throw new Error('No image was generated');
+      }
+
+      const imageResponseContent = await imageResponseToToolResult(imageResponse.images[0]);
+
       logger.info('Upscaled image', { imageResponse });
 
       return {
         content: [
           {
             type: 'text',
-            text: imageResponseFormatter(imageResponse),
+            text: imageResponseToText(imageResponse),
           },
+          imageResponseContent,
         ],
       };
     } catch (error: unknown) {

@@ -218,12 +218,16 @@ export const gaiaRemixParamsSchema = z.object({
     .describe(
       'The variation control of the remix. One of the following: "subtle", "medium", "strong"',
     ),
-  numberOfImages: z
-    .number()
-    .min(1)
-    .max(8)
-    .default(4)
-    .describe('Number of images to generate. Minimum 1, maximum 8 images.'),
+  // numberOfImages: z
+  //   .number()
+  //   .min(1)
+  //   .max(8)
+  //   .default(4)
+  //   .describe('Number of images to generate. Minimum 1, maximum 8 images.'),
+});
+
+export const commonImageGeneratorParamsSchema = z.object({
+  numberOfImages: z.number().int().optional(),
 });
 
 export const gaiaFaceEnhancerParamsSchema = z.object({
@@ -256,6 +260,7 @@ export const gaiaGenerateImagesRequestSchema = z.object({
     gaiaRemixParamsSchema,
     gaiaFaceEnhancerParamsSchema,
     gaiaUpscalerParamsSchema,
+    commonImageGeneratorParamsSchema,
   ]),
 });
 

@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaImageGeneratorSimpleParamsSchema } from '../../api/types.js';
-import { imageResponseFormatter } from '../../utils/formatter.js';
+import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -38,14 +38,22 @@ export const generateImageTool = createTool({
         },
       });
 
-      logger.info(`Successfully generated ${imageResponse.images.length} images`);
+      if (!imageResponse.images[0]) {
+        throw new Error('No image was generated');
+      }
+
+      // Convert the image response to a tool result
+      const imageResponseContent = await imageResponseToToolResult(imageResponse.images[0]);
+
+      logger.info(`Successfully generated and resized image`);
 
       const result: CallToolResult = {
         content: [
           {
             type: 'text',
-            text: imageResponseFormatter(imageResponse),
+            text: imageResponseToText(imageResponse),
           },
+          imageResponseContent,
         ],
       };
       return result;

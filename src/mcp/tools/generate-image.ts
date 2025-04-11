@@ -60,13 +60,25 @@ export const generateImageTool = createTool({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
+      // Check if the error is related to a timeout
+      const isTimeoutError =
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('timed out') ||
+        (error instanceof Error && error.name === 'TimeoutError');
+
+      // Log the error
       logger.error({ error }, `Failed to generate images: ${errorMessage}`);
+
+      // Provide a more informative message for timeout errors
+      const userMessage = isTimeoutError
+        ? `Failed to generate images: ${errorMessage}. Note that your image generation may still be running on Gaia. Please check your Gaia workspace to see the results.`
+        : `Failed to generate images: ${errorMessage}`;
 
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to generate images: ${errorMessage}`,
+            text: userMessage,
           },
         ],
         isError: true,

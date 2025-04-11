@@ -53,15 +53,27 @@ export const remixTool = createTool({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
+      // Check if the error is related to a timeout
+      const isTimeoutError =
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('timed out') ||
+        (error instanceof Error && error.name === 'TimeoutError');
+
       logger.error({ error }, `Failed to create image variations: ${errorMessage}`);
+
+      // Provide a more informative message for timeout errors
+      const userMessage = isTimeoutError
+        ? `Failed to create variations of the image: ${errorMessage}. Note that your image remix may still be running on Gaia. Please check your Gaia workspace to see the results.`
+        : `Failed to create variations of the image: ${errorMessage}`;
 
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to create variations of the image: ${errorMessage}`,
+            text: userMessage,
           },
         ],
+        isError: true,
       };
     }
   },

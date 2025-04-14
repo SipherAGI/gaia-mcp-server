@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.0.1...v1.1.0) (2025-04-14)
+
+
+### Bug Fixes
+
+* **docs:** update DEVELOPMENT.md and README.md with local development setup and Redis integration details ([f1dabe1](https://github.com/SipherAGI/gaia-mcp-server/commit/f1dabe19e0c884c7facd5beb369997fdf95965e1))
+
+
+### Features
+
+* enhance integration guide for Gaia MCP Server with Claude Desktop ([687c865](https://github.com/SipherAGI/gaia-mcp-server/commit/687c865d3cbea3cc0976782cb0ec75dbf2c1fa1e))
+
 # Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.

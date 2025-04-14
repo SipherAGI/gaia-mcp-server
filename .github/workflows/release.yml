@@ -7,13 +7,11 @@ on:
       - release/dev
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          # Use the existing PAT
-          token: ${{ secrets.SIPHERXYZ_PAT }}
       - uses: pnpm/action-setup@v2
       - uses: actions/setup-node@v3
         with:
@@ -24,7 +22,6 @@ jobs:
       - run: pnpm run build
       - name: Release
         env:
-          GH_TOKEN: ${{ secrets.SIPHERXYZ_PAT }}
-          # Keep NPM_TOKEN for npm publishing
+          GH_TOKEN: $GITHUB_TOKEN
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release

@@ -1,321 +1,241 @@
-# Integrating Claude Desktop with Gaia MCP Server Using stdio Mode
+# Getting Started with Claude Desktop and Gaia Image Generation
 
-This guide will walk you through the process of integrating Claude Desktop with the Gaia MCP Server using stdio (Standard Input/Output) mode. This integration enables you to use AI image generation and manipulation capabilities directly within your Claude conversations while running the server locally on your machine.
+This guide will help you set up Claude Desktop to generate images using Gaia. By following these steps, you'll be able to ask Claude to create and edit images directly in your conversations.
 
-## Overview
+## What You'll Be Able to Do
 
-The Gaia MCP Server implements the Model Context Protocol (MCP), which allows large language models like Claude to interact with external tools. By integrating with the Gaia MCP Server in stdio mode, Claude can generate and manipulate images through text commands while maintaining local execution for enhanced privacy and control.
+Once set up, you can ask Claude to:
 
-## Prerequisites
+- Create brand new images based on your descriptions
+- Edit and enhance photos
+- Improve image resolution
+- And more!
 
-1. A Claude Desktop application installed on your computer
-2. A Gaia account with an API key
-3. [Node.js](https://nodejs.org/en/download) installed on your machine (v20 or later recommended)
-   - If Node.js is not installed, see the [Node.js Installation Guide](#nodejs-installation-guide) section below
-4. Basic familiarity with terminal/command prompt operations
+## What You Need Before Starting
 
-## What is stdio Mode?
+1. Claude Desktop app installed on your computer
+2. A Gaia account (you'll need to create one if you don't have it already)
+3. Node.js installed on your computer (instructions included below if you need to install it)
+4. Basic knowledge of how to use your computer's command line/terminal
 
-stdio (Standard Input/Output) mode allows Claude Desktop to communicate with a locally running instance of the Gaia MCP Server through standard input/output streams. This differs from SSE (Server-Sent Events) integration in several ways:
+## How This Works (In Simple Terms)
 
-- **Local Execution**: The server runs on your local machine instead of connecting to a remote server
-- **Enhanced Privacy**: Your requests and images are processed through your local connection
-- **Reduced Dependency**: Works even when the cloud server might be unavailable
-- **More Control**: You can modify server configurations or even the code if needed
+This setup allows Claude to talk to a small program (called Gaia MCP Server) that runs on your computer. This program helps Claude generate images locally on your machine, which means:
 
-## Step-by-Step Integration Guide
+- Better privacy - your image requests stay on your computer
+- More reliability - works even when some internet services are down
+- More control - you can adjust settings if needed
 
-### 1. Obtain a Gaia API Key
+## Setting Up Step-by-Step
 
-Before setting up the local server, you need a Gaia API key:
+### Step 1: Get Your Gaia API Key
 
-1. Create an account or log in at [Gaia's website](https://protogaia.com)
+An API key is like a special password that lets Claude use Gaia's image tools:
+
+1. Go to [Gaia's website](https://protogaia.com) and create an account or log in
 2. Click on your profile picture in the top-right corner
-3. Select "My Account" from the dropdown menu
-4. Navigate to the "Security" section
-5. Look for "API Key" and create a new API Key
-6. Copy the key for use in the next steps
+3. Select "My Account"
+4. Go to the "Security" section
+5. Look for "API Key" and create a new one
+6. Copy this key - you'll need it in later steps
 
-### 2. Install and Run the Gaia MCP Server
+### Step 2: Set Up the Gaia MCP Server
 
-You have two options to install and run the Gaia MCP Server:
+You have two ways to set this up - choose the one that sounds easier to you:
 
-#### Option A: Use npx (Easiest Method)
+#### Option A: Quick Setup
 
-This method lets you run the Gaia MCP Server without installing it permanently:
+This method runs the server only when you need it, without installing anything permanently:
 
-1. Open your terminal or command prompt
-2. Run the following command:
+- You don't need to do anything else right now - just move to Step 3
 
-   ```bash
-   npx @ather-mcp/gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
+#### Option B: Permanent Installation (Recommended)
+
+This method installs the server permanently on your computer (better if you plan to use it often):
+
+1. Open your computer's terminal/command prompt
+   - On Windows: Search for "Command Prompt" in the Start menu
+   - On Mac: Search for "Terminal" in Spotlight (press Cmd+Space)
+2. Type this command and press Enter:
+
    ```
-
-3. Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key
-4. The server will start automatically without further setup
-
-This is ideal for testing or occasional use.
-
-#### Option B: Install from npm
-
-This method installs the Gaia MCP Server globally on your system:
-
-1. Open your terminal or command prompt
-2. Install the server globally:
-
-   ```bash
    npm install -g @ather-mcp/gaia-mcp-server
    ```
 
-3. Run the server:
+3. To check if it installed correctly, type this command and press Enter:
 
-   ```bash
-   gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
+   ```
+   gaia-mcp-server --version
    ```
 
-4. Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key
+   You should see a version number appear.
 
-This is ideal if you plan to use the server regularly.
+### Step 3: Connect Claude Desktop to Gaia
 
-### 3. Configure Claude Desktop
+1. Open the Claude Desktop app
+2. Find Settings:
+   - On Windows: Click "File" then "Settings"
+   - On Mac: Click "Claude" then "Settings"
+3. Click the "Developer" tab
+4. Click the "Edit config" button
+5. A file will open - you'll need to edit it
 
-1. Open Claude Desktop application
-2. Access Settings from the menu bar:
-   - On Windows: Click on "File" → "Settings"
-   - On macOS: Click on "Claude" → "Settings"
-3. Navigate to the "Developer" tab
-4. Click on "Edit config" button
-5. A file explorer window will open showing the configuration file location
-6. Open the `claude_desktop_config.json` file with any text editor
-7. Replace the contents with the following configuration (or add to existing configuration):
+6. Replace everything in the file with one of these options:
 
-If you installed via npm (Option B), use this configuration:
+   If you chose Option B (permanent installation), use:
 
-```json
-{
-  "mcpServers": {
-    "gaia-mcp-server": {
-      "command": "gaia-mcp-server",
-      "args": ["stdio", "--api-key=YOUR_GAIA_API_KEY"]
-    }
-  }
-}
-```
+   ```json
+   {
+     "mcpServers": {
+       "gaia-mcp-server": {
+         "command": "gaia-mcp-server",
+         "args": ["stdio", "--api-key=YOUR_GAIA_API_KEY"]
+       }
+     }
+   }
+   ```
 
-If you want to use npx (Option A), use this configuration:
+   If you chose Option A (quick setup), use:
 
-```json
-{
-  "mcpServers": {
-    "gaia-mcp-server": {
-      "command": "npx",
-      "args": ["gaia-mcp-server", "stdio", "--api-key=YOUR_GAIA_API_KEY"]
-    }
-  }
-}
-```
+   ```json
+   {
+     "mcpServers": {
+       "gaia-mcp-server": {
+         "command": "npx",
+         "args": ["gaia-mcp-server", "stdio", "--api-key=YOUR_GAIA_API_KEY"]
+       }
+     }
+   }
+   ```
 
-8. Important: Replace `YOUR_GAIA_API_KEY` with your Gaia API key obtained in step 1
+7. **IMPORTANT**: Replace `YOUR_GAIA_API_KEY` with the actual API key you copied in Step 1
 
-9. Save the file and close the text editor
-10. Restart Claude Desktop completely
-11. After restarting, verify the integration by clicking the hammer icon (🔨) within the chat input - you should see Gaia tools in the available tools list
+8. Save the file and close the text editor
+9. Completely close and restart Claude Desktop
+10. To check if everything's working, look for a hammer icon (🔨) in the chat input area - clicking it should show Gaia tools in the list
 
-### 4. Test the Integration
+### Step 4: Try It Out!
 
 1. Start a new conversation with Claude
-2. When you first make a request that might use image generation, Claude may automatically start the Gaia MCP Server process
-3. Type a prompt that would use image generation, such as:
+2. Try asking for an image with a message like:
    ```
    Generate an image of a sunset over mountains
    ```
-4. Claude should recognize this as a request that can use the Gaia tools and display a message indicating it's generating an image
-5. After processing, Claude will display the generated image in the conversation
+3. Claude should tell you it's generating an image
+4. After a short wait, you should see the image appear in your conversation
 
-## Available Tools
+## Fun Image Prompts to Try
 
-When connected to the Gaia MCP Server in stdio mode, Claude can use the following tools:
-
-1. **upload-image**: Upload images to the Gaia platform from URLs
-2. **create-style**: Create a new style using provided images
-3. **generate-image**: Generate images based on text prompts
-4. **remix**: Create variations of an existing image
-5. **face-enhancer**: Enhance face details in an image
-6. **upscaler**: Enhance the resolution quality of an image
-
-## Example Prompts
-
-Here are some example prompts you can use to test the integration:
+Here are some examples you can copy and paste to test your setup:
 
 - "Generate an image of a futuristic city with flying cars"
-- "Create a photorealistic portrait of a young woman with blonde hair"
-- "Draw a cute cartoon penguin on a snowboard"
-- "Generate an image of a tropical beach at sunset"
-- "Take this image and enhance the faces in it" (when sharing an image with Claude)
-- "Upscale this image to a higher resolution" (when sharing an image with Claude)
+- "Create a picture of a cute cartoon penguin on a snowboard"
+- "Make an image of a tropical beach at sunset"
+- "Generate a picture of a magical forest with glowing mushrooms"
 
-## Troubleshooting
+If you upload an image to Claude, you can also try:
 
-### Server Not Starting
+- "Enhance the faces in this photo"
+- "Make this image higher resolution"
 
-If Claude is unable to start the Gaia MCP Server:
+## Troubleshooting: Common Problems and Solutions
 
-1. **Check your command arguments**:
+### If Claude Can't Start the Image Server
 
-   - Verify that the Path to Application points to the correct Node.js executable
-   - Ensure the Arguments field correctly points to the index.js file and includes the stdio command
-   - Make sure the API key is correctly specified in the Arguments field
-   - Ensure the Working Directory is set correctly
+1. **Check your settings**:
 
-2. **File permissions**:
+   - Make sure your API key is typed correctly in the configuration file
+   - Make sure there are no extra spaces or typos
 
-   - Ensure the script has execution permissions
-   - On macOS/Linux, run: `chmod +x /path/to/dist/index.js`
+2. **Try restarting**:
 
-3. **Test running the command manually**:
+   - Close Claude Desktop completely and reopen it
 
-   - Open a terminal and navigate to your gaia-mcp-server directory
-   - Run: `node dist/index.js stdio --api-key=YOUR_GAIA_API_KEY`
-   - Check if any errors are displayed
+3. **Check if Node.js is working**:
+   - Open terminal/command prompt
+   - Type `node --version` and press Enter
+   - You should see a version number (if not, see the Node.js installation guide below)
 
-4. **Check logs**:
-   - Look at Claude Desktop logs for error messages
-   - Check the console output in the terminal if you're running the server manually
+### If Claude Isn't Creating Images
 
-### Claude Doesn't Use the Tools
+1. Try being more specific in your requests:
 
-If Claude isn't using the Gaia tools:
+   - "Please use Gaia to generate an image of a sunset"
+   - "Can you create an image of a cat using the image generation tool?"
 
-1. Try being more explicit in your requests:
-
-   - "Please use Gaia to generate an image of a sunset over mountains"
-   - "Can you create an image using the generate-image tool?"
-
-2. Restart the Claude Desktop application
+2. Restart Claude Desktop
 
 3. Check if there are any updates available for Claude Desktop
 
-4. Verify the server is running properly by testing it manually:
-   ```bash
-   cd /path/to/gaia-mcp-server
-   node dist/index.js stdio --api-key=YOUR_GAIA_API_KEY
-   ```
+## Getting Help
 
-### Image Generation Issues
+If you're still having trouble:
 
-If image generation fails or produces unexpected results:
-
-1. Your prompt might be too complex or contain restricted content
-2. Try a simpler prompt or different subject matter
-3. Check that your Gaia API key is valid and has not expired
-4. Verify your internet connection is stable
-
-## Advanced Configuration
-
-### Custom API URL
-
-You can specify a custom API URL when starting the server:
-
-```bash
-node dist/index.js stdio --api-key=YOUR_GAIA_API_KEY --api-url=https://your-custom-api-url
-```
-
-Add this to the Arguments field in Claude Desktop's extension configuration.
-
-### Running the Server Manually
-
-For debugging purposes, you can run the server manually in a terminal:
-
-```bash
-cd /path/to/gaia-mcp-server
-node dist/index.js stdio --api-key=YOUR_GAIA_API_KEY
-```
-
-This will start the server in stdio mode, and you can observe the logs directly in the terminal.
-
-## Benefits of stdio Mode
-
-- **Privacy**: Your requests don't go through an external server
-- **Reliability**: Less dependent on external service availability
-- **Customization**: You can modify the server code or configuration
-- **Performance**: Local execution can be faster in some cases
-- **Control**: You have full control over the server process
-
-## Support
-
-If you continue to experience issues with the integration:
-
-- Visit the [Gaia support page](https://protogaia.com/support)
-- Contact Claude support through the desktop application
-- Check the [MCP documentation](https://modelcontextprotocol.io) for general protocol information
+- Visit [Gaia's support page](https://protogaia.com/)
+- Contact Claude support through the desktop app
+- Ask a friend who's familiar with technology to help you
 
 ---
 
-**Note**: This integration enables Claude to use Gaia's AI image generation capabilities but is subject to both Claude's and Gaia's terms of service and usage policies. Ensure your prompts comply with both services' content guidelines.
+## Node.js Installation Guide (If Needed)
 
-## Node.js Installation Guide
+If you don't have Node.js installed, follow these simple instructions:
 
-If you don't have Node.js installed, follow these instructions:
+### For Windows
 
-### Windows
-
-1. Visit the [Node.js download page](https://nodejs.org/en/download)
-2. Download the Windows Installer (.msi file) for your system (64-bit recommended)
-3. Run the installer and follow the on-screen instructions
-4. Accept the license agreement and keep the default installation settings
-5. Click "Install" and wait for the installation to complete
-6. Click "Finish" to exit the installer
-7. Verify the installation by opening Command Prompt and typing:
+1. Go to the [Node.js download page](https://nodejs.org/en/download)
+2. Click the Windows Installer (.msi) button (64-bit recommended)
+3. Once downloaded, double-click the file to start installation
+4. Follow the on-screen prompts, leaving all settings at their defaults
+5. Click "Install" and wait for it to finish
+6. To verify it worked, open Command Prompt (search for it in the Start menu) and type:
    ```
    node --version
-   npm --version
    ```
-   Both commands should display version numbers if installed correctly
+   If you see a version number, it worked!
 
-### macOS
+### For Mac
 
-#### Option 1: Using the Installer
-
-1. Visit the [Node.js download page](https://nodejs.org/en/download)
-2. Download the macOS Installer (.pkg file)
-3. Run the installer and follow the on-screen instructions
-4. The installer will require administrator privileges
-5. Verify the installation by opening Terminal and typing:
+1. Go to the [Node.js download page](https://nodejs.org/en/download)
+2. Click the macOS Installer (.pkg) button
+3. Once downloaded, double-click the file to start installation
+4. Follow the on-screen instructions (you'll need your admin password)
+5. To verify it worked, open Terminal (search for "Terminal" in Spotlight) and type:
    ```
    node --version
-   npm --version
    ```
+   If you see a version number, it worked!
 
-#### Option 2: Using Homebrew (Recommended)
+### For Mac Users with Homebrew
 
-If you have Homebrew installed:
+If you already use Homebrew (a package manager for Mac):
 
 1. Open Terminal
-2. Run the following command:
+2. Type this command and press Enter:
    ```
    brew install node
    ```
-3. Verify the installation:
+3. To verify it worked, type:
    ```
    node --version
-   npm --version
    ```
 
-### Linux (Ubuntu/Debian)
+### For Linux (Ubuntu/Debian)
 
 1. Open Terminal
-2. Update your package lists:
+2. Update your system's package list:
    ```
    sudo apt update
    ```
-3. Install Node.js and npm:
+3. Install Node.js:
    ```
    sudo apt install nodejs npm
    ```
-4. Verify the installation:
+4. To verify it worked, type:
    ```
    node --version
-   npm --version
    ```
 
-If you need a newer version than provided by your distribution's package manager, consider using [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm).
+---
+
+**Note**: When using these image generation tools, please respect both Claude's and Gaia's terms of service. Don't create inappropriate or harmful images.

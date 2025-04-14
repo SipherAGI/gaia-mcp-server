@@ -11,6 +11,7 @@ The Gaia MCP Server implements the Model Context Protocol (MCP), which allows la
 1. A Claude Desktop application installed on your computer
 2. A Gaia account with an API key
 3. [Node.js](https://nodejs.org/en/download) installed on your machine (v20 or later recommended)
+   - If Node.js is not installed, see the [Node.js Installation Guide](#nodejs-installation-guide) section below
 4. Basic familiarity with terminal/command prompt operations
 
 ## What is stdio Mode?
@@ -35,34 +36,46 @@ Before setting up the local server, you need a Gaia API key:
 5. Look for "API Key" and create a new API Key
 6. Copy the key for use in the next steps
 
-### 2. Install the Gaia MCP Server
+### 2. Install and Run the Gaia MCP Server
+
+You have two options to install and run the Gaia MCP Server:
+
+#### Option A: Use npx (Easiest Method)
+
+This method lets you run the Gaia MCP Server without installing it permanently:
 
 1. Open your terminal or command prompt
-2. Clone the Gaia MCP Server repository:
+2. Run the following command:
 
    ```bash
-   git clone https://github.com/SipherAGI/gaia-mcp-server
-   cd gaia-mcp-server
+   npx gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
    ```
 
-3. Install dependencies:
+3. Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key
+4. The server will start automatically without further setup
+
+This is ideal for testing or occasional use.
+
+#### Option B: Install from npm
+
+This method installs the Gaia MCP Server globally on your system:
+
+1. Open your terminal or command prompt
+2. Install the server globally:
 
    ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
+   npm install -g gaia-mcp-server
    ```
 
-4. Build the project:
+3. Run the server:
+
    ```bash
-   npm run build
-   # or
-   yarn build
-   # or
-   pnpm build
+   gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
    ```
+
+4. Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key
+
+This is ideal if you plan to use the server regularly.
 
 ### 3. Configure Claude Desktop
 
@@ -76,25 +89,33 @@ Before setting up the local server, you need a Gaia API key:
 6. Open the `claude_desktop_config.json` file with any text editor
 7. Replace the contents with the following configuration (or add to existing configuration):
 
+If you installed via npm (Option B), use this configuration:
+
 ```json
 {
   "mcpServers": {
     "gaia-mcp-server": {
-      "command": "node",
-      "args": [
-        "/full/path/to/gaia-mcp-server/dist/index.js",
-        "stdio",
-        "--api-key=YOUR_GAIA_API_KEY"
-      ]
+      "command": "gaia-mcp-server",
+      "args": ["stdio", "--api-key=YOUR_GAIA_API_KEY"]
     }
   }
 }
 ```
 
-8. Important: Replace the following placeholders:
+If you want to use npx (Option A), use this configuration:
 
-   - `/full/path/to/gaia-mcp-server`: Enter the absolute path to your cloned repository
-   - `YOUR_GAIA_API_KEY`: Enter your Gaia API key obtained in step 1
+```json
+{
+  "mcpServers": {
+    "gaia-mcp-server": {
+      "command": "npx",
+      "args": ["gaia-mcp-server", "stdio", "--api-key=YOUR_GAIA_API_KEY"]
+    }
+  }
+}
+```
+
+8. Important: Replace `YOUR_GAIA_API_KEY` with your Gaia API key obtained in step 1
 
 9. Save the file and close the text editor
 10. Restart Claude Desktop completely
@@ -231,3 +252,70 @@ If you continue to experience issues with the integration:
 ---
 
 **Note**: This integration enables Claude to use Gaia's AI image generation capabilities but is subject to both Claude's and Gaia's terms of service and usage policies. Ensure your prompts comply with both services' content guidelines.
+
+## Node.js Installation Guide
+
+If you don't have Node.js installed, follow these instructions:
+
+### Windows
+
+1. Visit the [Node.js download page](https://nodejs.org/en/download)
+2. Download the Windows Installer (.msi file) for your system (64-bit recommended)
+3. Run the installer and follow the on-screen instructions
+4. Accept the license agreement and keep the default installation settings
+5. Click "Install" and wait for the installation to complete
+6. Click "Finish" to exit the installer
+7. Verify the installation by opening Command Prompt and typing:
+   ```
+   node --version
+   npm --version
+   ```
+   Both commands should display version numbers if installed correctly
+
+### macOS
+
+#### Option 1: Using the Installer
+
+1. Visit the [Node.js download page](https://nodejs.org/en/download)
+2. Download the macOS Installer (.pkg file)
+3. Run the installer and follow the on-screen instructions
+4. The installer will require administrator privileges
+5. Verify the installation by opening Terminal and typing:
+   ```
+   node --version
+   npm --version
+   ```
+
+#### Option 2: Using Homebrew (Recommended)
+
+If you have Homebrew installed:
+
+1. Open Terminal
+2. Run the following command:
+   ```
+   brew install node
+   ```
+3. Verify the installation:
+   ```
+   node --version
+   npm --version
+   ```
+
+### Linux (Ubuntu/Debian)
+
+1. Open Terminal
+2. Update your package lists:
+   ```
+   sudo apt update
+   ```
+3. Install Node.js and npm:
+   ```
+   sudo apt install nodejs npm
+   ```
+4. Verify the installation:
+   ```
+   node --version
+   npm --version
+   ```
+
+If you need a newer version than provided by your distribution's package manager, consider using [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm).

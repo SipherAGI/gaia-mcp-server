@@ -6,7 +6,8 @@
       "prerelease": "rc"
     },
     {
-      "name": "release/dev"
+      "name": "release/dev",
+      "prerelease": "dev"
     }
   ],
   "plugins": [

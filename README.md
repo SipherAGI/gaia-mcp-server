@@ -55,6 +55,8 @@ gaia-mcp-server stdio --api-key=your-api-key
 
 The server can be run in two modes: stdio or SSE. You can choose which mode to run using the command-line interface.
 
+> **Note:** To utilize the generative image functionality, the user must possess GAIA credits.
+
 ### Using Stdio Method
 
 The stdio method is useful for direct communication with the server via standard input/output streams, typically used when integrating with CLI tools or developing locally.
@@ -180,4 +182,4 @@ Each tool is registered with the MCP server and can be invoked according to the 
 
 ### License
 
-ISC
+Apache License 2.0

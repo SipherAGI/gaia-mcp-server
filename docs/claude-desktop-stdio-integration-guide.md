@@ -48,7 +48,7 @@ This method lets you run the Gaia MCP Server without installing it permanently:
 2. Run the following command:
 
    ```bash
-   npx gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
+   npx @ather-mcp/gaia-mcp-server stdio --api-key=YOUR_GAIA_API_KEY
    ```
 
 3. Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key
@@ -64,7 +64,7 @@ This method installs the Gaia MCP Server globally on your system:
 2. Install the server globally:
 
    ```bash
-   npm install -g gaia-mcp-server
+   npm install -g @ather-mcp/gaia-mcp-server
    ```
 
 3. Run the server:

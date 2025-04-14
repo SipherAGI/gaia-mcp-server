@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.1.0...v1.1.1) (2025-04-14)
+
+
+### Bug Fixes
+
+* update README with GAIA credits note and license change ([4bdd305](https://github.com/SipherAGI/gaia-mcp-server/commit/4bdd3059993bea8282326d863f76120396e1c98d))
+
 # [1.1.0](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.0.1...v1.1.0) (2025-04-14)
 
 

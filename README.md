@@ -12,6 +12,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 - [Understanding MCP](#understanding-mcp)
 - [API Endpoints](#api-endpoints)
 - [Supported Tools](#supported-tools)
+- [Notice](#notice)
 
 ## Introduction
 
@@ -54,8 +55,6 @@ gaia-mcp-server stdio --api-key=your-api-key
 ## Usage
 
 The server can be run in two modes: stdio or SSE. You can choose which mode to run using the command-line interface.
-
-> **Note:** To utilize the generative image functionality, the user must possess GAIA credits.
 
 ### Using Stdio Method
 
@@ -180,6 +179,10 @@ The Gaia MCP Server provides several AI image generation and manipulation tools 
 
 Each tool is registered with the MCP server and can be invoked according to the Model Context Protocol standard.
 
-### License
+## License
 
 Apache License 2.0
+
+## Notice
+
+- To utilize the generative image functionality, the user must possess GAIA credits. You can check your remaining credits and purchase more [here](https://protogaia.com/settings/account?tab=Plans).

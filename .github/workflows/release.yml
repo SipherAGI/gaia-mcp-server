@@ -1,0 +1,30 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+      - release/rc
+      - release/dev
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          # Use the existing PAT
+          token: ${{ secrets.SIPHERXYZ_PAT }}
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm install
+      - run: pnpm run build
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.SIPHERXYZ_PAT }}
+          # Keep NPM_TOKEN for npm publishing
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release

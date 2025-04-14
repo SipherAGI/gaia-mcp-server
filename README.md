@@ -6,6 +6,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 
 - [Introduction](#introduction)
 - [Installation](#installation)
+- [Using with npx](#using-with-npx)
 - [Configuration](#configuration)
 - [Redis Integration](#redis-integration)
 - [Logging](#logging)
@@ -41,6 +42,40 @@ This repository contains a TypeScript implementation of an MCP server for ProtoG
    ```bash
    pnpm build
    ```
+
+## Using with npx
+
+You can use Gaia MCP Server directly without installation using npx:
+
+### Running the Server with npx
+
+```bash
+# Run in SSE mode
+npx @ather-mcp/gaia-mcp-server sse
+
+# Run in stdio mode
+npx @ather-mcp/gaia-mcp-server stdio --api-key=your-api-key
+```
+
+### Global Installation
+
+Alternatively, you can install the package globally:
+
+```bash
+npm install -g @ather-mcp/gaia-mcp-server
+```
+
+Then run it from anywhere:
+
+```bash
+# Run in SSE mode
+gaia-mcp-server sse
+
+# Run in stdio mode
+gaia-mcp-server stdio --api-key=your-api-key
+```
+
+All the configuration options mentioned in this document are available when running through npx.
 
 ## Configuration
 

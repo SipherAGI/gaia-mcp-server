@@ -35,6 +35,33 @@ export const gaiaRecipeType = [
   'other',
 ] as const;
 
+export const gaiaPromptStyles = [
+  'base',
+  'enhance',
+  'anime',
+  'photographic',
+  'cinematic',
+  'analog film',
+  'digital art',
+  'fantasy art',
+  'line art',
+  'pixel art',
+  'artstyle-watercolor',
+  'comic book',
+  'neonpunk',
+  '3d-model',
+  'misc-fairy tale',
+  'misc-gothic',
+  'photo-long exposure',
+  'photo-tilt-shift',
+  'lowpoly',
+  'origami',
+  'craft clay',
+  'game-minecraft',
+] as const;
+
+export const gaiaAspectRatios = ['1:1', '3:2', '2:3', '16:9', '9:16'] as const;
+
 export const gaiaQueueType = ['default', 'fast', 'flux1', 'dedicated'] as const;
 
 export const recipeIds = ['image-generator-simple', 'remix', 'face-enhancer', 'upscaler'] as const;
@@ -196,13 +223,25 @@ export const gaiaRecipeTaskSchema = z.object({
 });
 
 export const gaiaImageGeneratorSimpleParamsSchema = z.object({
-  prompt: z.string(),
-  seed: z.number().int().optional(),
-  // numberOfImages: z.number().int().optional(),
-  aspectRatio: z.string().optional(),
-  promptStyle: z.string().optional(),
-  style: z.string().optional(),
-  styleIntensity: z.number().int().optional(),
+  prompt: z.string().describe('The prompt to generate the image.'),
+  aspectRatio: z
+    .enum(gaiaAspectRatios)
+    .default('1:1')
+    .optional()
+    .describe(
+      'Aspect ratio of the image. One of the following: "1:1", "3:2", "2:3", "16:9", "9:16"',
+    ),
+  promptStyle: z
+    .enum(gaiaPromptStyles)
+    .default('base')
+    .optional()
+    .describe(
+      "Style to apply to the generated image. Choose from predefined styles. It's not style id and style name.",
+    ),
+  styleId: z
+    .string()
+    .optional()
+    .describe('The style ID to use. It must be styleId created by createStyleTool from Gaia'),
 });
 
 export const gaiaRemixParamsSchema = z.object({
@@ -218,12 +257,6 @@ export const gaiaRemixParamsSchema = z.object({
     .describe(
       'The variation control of the remix. One of the following: "subtle", "medium", "strong"',
     ),
-  // numberOfImages: z
-  //   .number()
-  //   .min(1)
-  //   .max(8)
-  //   .default(4)
-  //   .describe('Number of images to generate. Minimum 1, maximum 8 images.'),
 });
 
 export const commonImageGeneratorParamsSchema = z.object({

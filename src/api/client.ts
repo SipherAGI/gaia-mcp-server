@@ -16,7 +16,8 @@ import { fetchImage } from '../utils/fetch-image.js';
 import { createLogger } from '../utils/logger.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
-const REQUEST_TIMEOUT = 1000 * 90; // 90 seconds timeout for API requests
+// 60 seconds timeout for API requests
+const REQUEST_TIMEOUT = 1000 * 60;
 
 /**
  * Client for interacting with the Gaia API

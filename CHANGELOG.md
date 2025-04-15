@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.2.0...v1.3.0) (2025-04-15)
+
+
+### Features
+
+* update package version retrieval in gaia-mcp-server ([09e5e7c](https://github.com/SipherAGI/gaia-mcp-server/commit/09e5e7cfde27d8af689d7eb66938e67a7ac5b93e))
+
 # [1.3.0-dev.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.2.0...v1.3.0-dev.1) (2025-04-15)
 
 

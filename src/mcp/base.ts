@@ -51,7 +51,6 @@ export function createTool<P extends ZodRawShape, R>({
   handler: (args: z.infer<z.ZodObject<P>>, context: ToolContext) => R | Promise<R>;
 }): Tool {
   // Return the original Zod schema objects directly instead of converting them
-  // This matches how test-tool is registered
   return {
     name,
     description,

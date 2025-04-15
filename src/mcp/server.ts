@@ -10,22 +10,48 @@ import { createLogger } from '../utils/logger.js';
 import { RedisClient } from '../utils/redis-client.js';
 import { tools } from './tools/index.js';
 
+/**
+ * Session data for SSE connections
+ *
+ * @property sessionId - Unique identifier for the session
+ * @property apiKey - API key associated with the session
+ */
 type SSESessionData = {
   sessionId: string;
   apiKey: string;
 };
 
+/**
+ * Configuration options for the SSE server
+ *
+ * @property port - Port number to run the server on
+ * @property redisClient - Optional Redis client for session persistence
+ */
 type SSEConfig = {
   port: number;
   redisClient?: RedisClient;
 };
 
+/**
+ * Configuration options for the GaiaMcpServer
+ *
+ * @property apiUrl - Gaia API URL to connect to
+ * @property apiKey - Optional API key for authenticating with Gaia
+ * @property logger - Optional custom logger instance
+ */
 type GaiaMcpServerOptions = {
   apiUrl: string;
   apiKey?: string;
   logger?: Logger;
 };
 
+/**
+ * GaiaMcpServer implements a Model Context Protocol server for Gaia
+ * with support for SSE and STDIO transports.
+ *
+ * The server handles tool registrations and session management,
+ * with optional Redis-based persistence for SSE sessions.
+ */
 export class GaiaMcpServer {
   private readonly logger: Logger;
   private server: McpServer;
@@ -39,6 +65,14 @@ export class GaiaMcpServer {
   // Fallback in-memory sessions store if Redis is not configured
   private sessions: Map<string, SSESessionData> = new Map();
 
+  /**
+   * Creates a new GaiaMcpServer instance
+   *
+   * @param options - Configuration options for the server
+   * @param options.apiUrl - Gaia API URL to connect to
+   * @param options.apiKey - Optional API key for authenticating with Gaia
+   * @param options.logger - Optional custom logger instance
+   */
   constructor(options: GaiaMcpServerOptions) {
     const { apiUrl, apiKey, logger } = options;
 
@@ -64,6 +98,12 @@ export class GaiaMcpServer {
     }
   }
 
+  /**
+   * Starts the server with STDIO transport
+   *
+   * This method initializes the server and connects it with
+   * standard input/output for terminal-based operation.
+   */
   public async startStdio() {
     this.initialize();
 
@@ -72,6 +112,16 @@ export class GaiaMcpServer {
     await this.server.connect(transport);
   }
 
+  /**
+   * Starts the server with SSE (Server-Sent Events) transport
+   *
+   * This method sets up an Express server to handle SSE connections
+   * and message routing, with optional Redis-based session persistence.
+   *
+   * @param sseCfg - SSE configuration options
+   * @param sseCfg.port - Port to run the SSE server on
+   * @param sseCfg.redisClient - Optional Redis client for session persistence
+   */
   public async startSSE(sseCfg: SSEConfig) {
     const { port, redisClient } = sseCfg;
 
@@ -157,6 +207,11 @@ export class GaiaMcpServer {
     });
   }
 
+  /**
+   * Initializes the server by setting up shutdown handlers and registering tools
+   *
+   * @private
+   */
   private initialize() {
     this.logger.info('Initializing MCP server...');
 
@@ -178,6 +233,11 @@ export class GaiaMcpServer {
     this.registerTools();
   }
 
+  /**
+   * Registers all available tools with the MCP server
+   *
+   * @private
+   */
   private registerTools() {
     for (const tool of tools) {
       this.server.tool(
@@ -211,6 +271,15 @@ export class GaiaMcpServer {
     }
   }
 
+  /**
+   * Retrieves session data for a given session ID
+   *
+   * Uses Redis if available, with fallback to in-memory storage.
+   *
+   * @param sessionId - The unique session identifier
+   * @returns The session data or null if not found
+   * @private
+   */
   private async getSessionData(sessionId: string): Promise<SSESessionData | null> {
     if (this.redisClient) {
       const data = await this.redisClient.get<SSESessionData>(sessionId);
@@ -223,6 +292,15 @@ export class GaiaMcpServer {
     return this.sessions.get(sessionId) ?? null;
   }
 
+  /**
+   * Saves session data for a given session ID
+   *
+   * Uses Redis if available, with fallback to in-memory storage.
+   *
+   * @param sessionId - The unique session identifier
+   * @param data - The session data to store
+   * @private
+   */
   private async saveSessionData(sessionId: string, data: SSESessionData): Promise<void> {
     if (this.redisClient) {
       const success = await this.redisClient.set(sessionId, data);
@@ -236,6 +314,14 @@ export class GaiaMcpServer {
     }
   }
 
+  /**
+   * Deletes session data for a given session ID
+   *
+   * Removes data from both Redis (if available) and in-memory storage.
+   *
+   * @param sessionId - The unique session identifier
+   * @private
+   */
   private async deleteSessionData(sessionId: string): Promise<void> {
     if (this.redisClient) {
       await this.redisClient.delete(sessionId);

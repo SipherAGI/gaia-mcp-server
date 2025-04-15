@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.1.1...v1.2.0) (2025-04-15)
+
+
+### Bug Fixes
+
+* improve error handling and update timeout message ([c09927e](https://github.com/SipherAGI/gaia-mcp-server/commit/c09927ee381e8288fc944a7b1c52fd5475ba75a1))
+* update API request timeout to 60 seconds ([131f0d1](https://github.com/SipherAGI/gaia-mcp-server/commit/131f0d121eb801ebfd476c0d1a2947fc6f597156))
+
+
+### Features
+
+* add new prompt styles and aspect ratios for image generation ([344fbee](https://github.com/SipherAGI/gaia-mcp-server/commit/344fbee05dce24ca1eab1dfafd55beb2671d0ca7))
+
 ## [1.1.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.1.0...v1.1.1) (2025-04-14)
 
 

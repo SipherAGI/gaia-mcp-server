@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import { readFileSync } from 'fs';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
 import { program } from 'commander';
 
 import { getConfig } from './config/index.js';
@@ -7,7 +11,12 @@ import { DEFAULT_GAIA_API_URL } from './utils/constants.js';
 import { createLogger } from './utils/logger.js';
 import { RedisClient } from './utils/redis-client.js';
 
-program.name('gaia-mcp-server').description('Gaia MCP Server').version('1.0.0');
+// Get package version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf8'));
+
+program.name('gaia-mcp-server').description('Gaia MCP Server').version(packageJson.version);
 
 program
   .command('sse')

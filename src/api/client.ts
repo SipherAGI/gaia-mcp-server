@@ -16,8 +16,8 @@ import { fetchImage } from '../utils/fetch-image.js';
 import { createLogger } from '../utils/logger.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
-// 60 seconds timeout for API requests
-const REQUEST_TIMEOUT = 1000 * 60;
+// 90 seconds timeout for API requests. It depends on the Gateway's timeout
+const REQUEST_TIMEOUT = 1000 * 90;
 
 /**
  * Client for interacting with the Gaia API
@@ -264,7 +264,7 @@ export class ApiClient {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
 
-      throw new Error(`Failed to generate images: ${message}`);
+      throw new Error(message);
     }
   }
 }

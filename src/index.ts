@@ -28,6 +28,7 @@ program
     const gaiaMcpServer = new GaiaMcpServer({
       apiUrl: config.getEnv('GaiaApiUrl') ?? DEFAULT_GAIA_API_URL,
       logger,
+      version: packageJson.version,
     });
 
     const redisClient = new RedisClient({
@@ -61,6 +62,7 @@ program
       apiUrl: options.apiUrl ?? config.getEnv('GaiaApiUrl') ?? DEFAULT_GAIA_API_URL,
       apiKey: options.apiKey,
       logger,
+      version: packageJson.version,
     });
 
     await gaiaMcpServer.startStdio();

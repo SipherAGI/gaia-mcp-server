@@ -7,6 +7,7 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Integrate with Claude Desktop](#integrate-with-claude-desktop)
   - [Using Stdio Method](#using-stdio-method)
   - [Using SSE Method](#using-sse-method)
 - [Understanding MCP](#understanding-mcp)
@@ -55,6 +56,58 @@ gaia-mcp-server stdio --api-key=your-api-key
 ## Usage
 
 The server can be run in two modes: stdio or SSE. You can choose which mode to run using the command-line interface.
+
+### Integrate with Claude Desktop
+
+You can integrate Gaia MCP Server with Claude Desktop to generate images directly in your conversations:
+
+1. **Get Your Gaia API Key**:
+   - Log in to [Gaia's website](https://protogaia.com)
+   - Go to your account settings via your profile picture
+   - Navigate to the "Security" section
+   - Create a new API key and copy it
+
+2. **Configure Claude Desktop**:
+   - Open Claude Desktop
+   - Go to Settings (File > Settings on Windows, Claude > Settings on Mac)
+   - Click the "Developer" tab
+   - Click the "Edit config" button
+   - Replace the content with one of these configurations:
+
+   **If you've installed the package globally**:
+   ```json
+   {
+     "mcpServers": {
+       "gaia-mcp-server": {
+         "command": "gaia-mcp-server",
+         "args": ["stdio", "--api-key=YOUR_GAIA_API_KEY"]
+       }
+     }
+   }
+   ```
+
+   **If you prefer to use npx (no installation)**:
+   ```json
+   {
+     "mcpServers": {
+       "gaia-mcp-server": {
+         "command": "npx",
+         "args": ["gaia-mcp-server", "stdio", "--api-key=YOUR_GAIA_API_KEY"]
+       }
+     }
+   }
+   ```
+
+   Replace `YOUR_GAIA_API_KEY` with your actual Gaia API key.
+
+3. **Restart Claude Desktop**
+
+4. **Test the Integration**:
+   - Start a new conversation
+   - Ask Claude to generate an image (e.g., "Generate an image of a sunset over mountains")
+   - You should see the image appear in your conversation
+
+For more detailed instructions and troubleshooting, see our [Claude Desktop Integration Guide](docs/claude-desktop-stdio-integration-guide.md).
 
 ### Using Stdio Method
 

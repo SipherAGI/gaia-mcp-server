@@ -43,6 +43,7 @@ type GaiaMcpServerOptions = {
   apiUrl: string;
   apiKey?: string;
   logger?: Logger;
+  version?: string;
 };
 
 /**
@@ -74,12 +75,12 @@ export class GaiaMcpServer {
    * @param options.logger - Optional custom logger instance
    */
   constructor(options: GaiaMcpServerOptions) {
-    const { apiUrl, apiKey, logger } = options;
+    const { apiUrl, apiKey, logger, version } = options;
 
     this.server = new McpServer(
       {
         name: 'GaiaMcpServer',
-        version: '0.0.1',
+        version: version || 'unknown',
       },
       {
         capabilities: {

@@ -157,7 +157,7 @@ The server will start on the port specified in your .env file (default: 3000).
 
 To establish an SSE connection:
 
-1. Create an EventSource connection to `/sse` endpoint with your Gaia's account API Key. More information about creating your API key can be found at [here](#).
+1. Create an EventSource connection to `/sse` endpoint with your Gaia's account API Key. More information about creating your API key can be found at [here](https://protogaia.com/settings/account?tab=Security).
 2. Send messages via POST requests to `/messages` endpoint
 
 Client-side JavaScript example:

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { imageSize } from 'image-size';
 import { Logger } from 'pino';
 
@@ -13,6 +13,7 @@ import {
   GaiaImagesResponse,
 } from './types.js';
 import { fetchImage } from '../utils/fetch-image.js';
+import { HttpClient, createHttpClient } from '../utils/http-client.js';
 import { createLogger } from '../utils/logger.js';
 
 const MULTIPART_FILE_CHUNK = 1024 * 1024 * 10;
@@ -23,7 +24,7 @@ const REQUEST_TIMEOUT = 1000 * 90;
  * Client for interacting with the Gaia API
  */
 export class ApiClient {
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
   private readonly logger: Logger;
   private readonly timeout: number;
 
@@ -50,13 +51,15 @@ export class ApiClient {
     // Store the timeout value for use in other Axios calls
     this.timeout = timeout || REQUEST_TIMEOUT;
 
-    this.httpClient = axios.create({
+    this.httpClient = createHttpClient({
       baseURL: baseUrl,
       timeout: this.timeout,
     });
 
     if (apiKey) {
-      this.httpClient.defaults.headers.common['Authorization'] = `Bearer ${apiKey}`;
+      this.httpClient.setHeaders({
+        Authorization: `Bearer ${apiKey}`,
+      });
     }
 
     // Use provided logger or create a child logger from the default logger
@@ -129,7 +132,7 @@ export class ApiClient {
           },
         );
 
-        const uploadInfo = initResponse.data[0];
+        const uploadInfo = initResponse[0];
         if (!uploadInfo) {
           throw new Error('Failed to initialize upload: No upload info returned from API');
         }
@@ -143,6 +146,7 @@ export class ApiClient {
           const partNumber = index + 1;
 
           try {
+            // Create completely new axios instance
             const res = await axios.put(url, chunk, {
               headers: {
                 'Content-Type': 'application/octet-stream',
@@ -157,7 +161,7 @@ export class ApiClient {
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to upload chunk ${partNumber} for ${imageUrl}: ${errorMsg}`);
-            throw error; // Re-throw to be caught by Promise.all
+            throw error;
           }
         });
 
@@ -202,23 +206,15 @@ export class ApiClient {
    * @throws Will throw an error if the style creation fails
    */
   async createStyle(imageUrls: string[], name: string, description?: string): Promise<GaiaSdStyle> {
-    try {
-      const res = await this.httpClient.post<GaiaSdStyle>('/api/sd-styles', {
-        images: imageUrls.map(url => ({
-          url,
-          weight: 0.5,
-        })),
-        name,
-        description,
-        isDraft: false, // Public style
-      });
-
-      return res.data;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      throw new Error(`Failed to create style: ${message}`);
-    }
+    return await this.httpClient.post<GaiaSdStyle>('/api/sd-styles', {
+      images: imageUrls.map(url => ({
+        url,
+        weight: 0.5,
+      })),
+      name,
+      description,
+      isDraft: false, // Public style
+    });
   }
 
   /**
@@ -229,18 +225,10 @@ export class ApiClient {
    * @throws Will throw an error if the recipe task execution fails
    */
   async doRecipeTask(request: GaiaRecipeTaskRequest): Promise<GaiaRecipeTask> {
-    try {
-      const res = await this.httpClient.post<GaiaRecipeTask>('/api/recipe/tasks/', {
-        recipeId: request.recipeId,
-        params: request.params,
-      });
-
-      return res.data;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      throw new Error(`Failed to do recipe task: ${message}`);
-    }
+    return await this.httpClient.post<GaiaRecipeTask>('/api/recipe/tasks/', {
+      recipeId: request.recipeId,
+      params: request.params,
+    });
   }
 
   /**
@@ -251,20 +239,9 @@ export class ApiClient {
    * @throws Will throw an error if the image generation fails
    */
   async generateImages(request: GaiaGenerateImagesRequest) {
-    try {
-      const res = await this.httpClient.post<GaiaImagesResponse>(
-        '/api/recipe/agi-tasks/create-task',
-        {
-          recipeId: request.recipeId,
-          params: request.params,
-        },
-      );
-
-      return res.data;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      throw new Error(message);
-    }
+    return await this.httpClient.post<GaiaImagesResponse>('/api/recipe/agi-tasks/create-task', {
+      recipeId: request.recipeId,
+      params: request.params,
+    });
   }
 }

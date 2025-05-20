@@ -74,17 +74,16 @@ ${JSON.stringify(style, null, 2)}
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      logger.error({ error }, `Failed to create style: ${errorMessage}`);
+      logger.error({ error }, `Failed to create style`);
 
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to create style: ${errorMessage}`,
+            text: error instanceof Error ? error.message : 'Unknown error',
           },
         ],
+        isError: true,
       };
     }
   },

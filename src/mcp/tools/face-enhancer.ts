@@ -50,26 +50,13 @@ export const faceEnhancerTool = createTool({
       };
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      // Check if the error is related to a timeout
-      const isTimeoutError =
-        errorMessage.toLowerCase().includes('timeout') ||
-        errorMessage.toLowerCase().includes('timed out') ||
-        (error instanceof Error && error.name === 'TimeoutError');
-
-      logger.error({ error }, `Failed to enhance face's details: ${errorMessage}`);
-
-      // Provide a more informative message for timeout errors
-      const userMessage = isTimeoutError
-        ? `Failed to enhance face's details in the image: ${errorMessage}. Note that your face enhancement may still be running on Gaia. Please check your Gaia workspace to see the results.`
-        : `Failed to enhance face's details in the image: ${errorMessage}`;
+      logger.error({ error }, `Failed to enhance face's details in the image`);
 
       return {
         content: [
           {
             type: 'text',
-            text: userMessage,
+            text: error instanceof Error ? error.message : 'Unknown error',
           },
         ],
         isError: true,

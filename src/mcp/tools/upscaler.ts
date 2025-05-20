@@ -63,26 +63,13 @@ export const upscalerTool = createTool({
         ],
       };
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-
-      // Check if the error is related to a timeout
-      const isTimeoutError =
-        errorMessage.toLowerCase().includes('timeout') ||
-        errorMessage.toLowerCase().includes('timed out') ||
-        (error instanceof Error && error.name === 'TimeoutError');
-
-      logger.error('Error upscaling image', { error: errorMessage });
-
-      // Provide a more informative message for timeout errors
-      const userMessage = isTimeoutError
-        ? `Error upscaling image: ${errorMessage}. Note that your image upscaling may still be running on Gaia. Please check your Gaia workspace to see the results.`
-        : `Error upscaling image: ${errorMessage}`;
+      logger.error({ error }, `Failed to upscale image`);
 
       return {
         content: [
           {
             type: 'text',
-            text: userMessage,
+            text: error instanceof Error ? error.message : 'Unknown error',
           },
         ],
         isError: true,

@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
 
 import { ApiClient } from '../../api/client.js';
+import { GaiaError } from '../../utils/errors.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
 
@@ -74,9 +75,14 @@ ${JSON.stringify(style, null, 2)}
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.error({ error }, `Failed to create style`);
 
-      logger.error({ error }, `Failed to create style: ${errorMessage}`);
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof GaiaError) {
+        errorMessage = error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
 
       return {
         content: [

@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaFaceEnhancerParamsSchema } from '../../api/types.js';
+import { GaiaError } from '../../utils/errors.js';
 import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
@@ -50,26 +51,20 @@ export const faceEnhancerTool = createTool({
       };
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.error({ error }, `Failed to enhance face's details in the image`);
 
-      // Check if the error is related to a timeout
-      const isTimeoutError =
-        errorMessage.toLowerCase().includes('timeout') ||
-        errorMessage.toLowerCase().includes('timed out') ||
-        (error instanceof Error && error.name === 'TimeoutError');
-
-      logger.error({ error }, `Failed to enhance face's details: ${errorMessage}`);
-
-      // Provide a more informative message for timeout errors
-      const userMessage = isTimeoutError
-        ? `Failed to enhance face's details in the image: ${errorMessage}. Note that your face enhancement may still be running on Gaia. Please check your Gaia workspace to see the results.`
-        : `Failed to enhance face's details in the image: ${errorMessage}`;
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof GaiaError) {
+        errorMessage = error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
 
       return {
         content: [
           {
             type: 'text',
-            text: userMessage,
+            text: `Failed to enhance face's details in the image: ${errorMessage}`,
           },
         ],
         isError: true,

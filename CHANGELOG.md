@@ -1,3 +1,11 @@
+# [1.4.0-dev.4](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2025-05-20)
+
+
+### Features
+
+* add credit exhausted error handling and user message ([ea71be6](https://github.com/SipherAGI/gaia-mcp-server/commit/ea71be6a1eefd281184f804fd35cca0ac3bbeab4))
+* add credit exhausted error handling and user message ([c66ecb5](https://github.com/SipherAGI/gaia-mcp-server/commit/c66ecb5e0db50cd1b00d068ac888d72a33d19fbe))
+
 # [1.4.0-dev.3](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2025-05-20)
 
 

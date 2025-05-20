@@ -1,3 +1,18 @@
+# [1.4.0](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.3.1...v1.4.0) (2025-05-20)
+
+
+### Bug Fixes
+
+* improve error handling with simplified GaiaError and consistent error messages across tools ([87e2a72](https://github.com/SipherAGI/gaia-mcp-server/commit/87e2a7204f4b857fef1c26af33e12ef4f2dbfbc8))
+
+
+### Features
+
+* add credit exhausted error handling and user message ([ea71be6](https://github.com/SipherAGI/gaia-mcp-server/commit/ea71be6a1eefd281184f804fd35cca0ac3bbeab4))
+* add credit exhausted error handling and user message ([c66ecb5](https://github.com/SipherAGI/gaia-mcp-server/commit/c66ecb5e0db50cd1b00d068ac888d72a33d19fbe))
+* add Gaia homepage url ([daf91ee](https://github.com/SipherAGI/gaia-mcp-server/commit/daf91ee54dc0f8f0ea84c331b0c535c1eedcb9ca))
+* enhance error handling & trigger release ([f616b9b](https://github.com/SipherAGI/gaia-mcp-server/commit/f616b9b9d001f5dcf5a5f52c4c0427d9f93c2e42))
+
 # [1.4.0-dev.4](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2025-05-20)
 
 

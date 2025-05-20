@@ -1,3 +1,10 @@
+# [1.4.0-dev.2](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2025-05-20)
+
+
+### Bug Fixes
+
+* improve error handling with simplified GaiaError and consistent error messages across tools ([87e2a72](https://github.com/SipherAGI/gaia-mcp-server/commit/87e2a7204f4b857fef1c26af33e12ef4f2dbfbc8))
+
 # [1.4.0-dev.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.3.1...v1.4.0-dev.1) (2025-05-20)
 
 

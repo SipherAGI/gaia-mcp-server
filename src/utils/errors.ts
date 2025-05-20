@@ -9,6 +9,7 @@ import { DEFAULT_GAIA_URL } from './constants.js';
 export enum GaiaErrorCode {
   SUBSCRIPTION_EXPIRED = 'SUBSCRIPTION_EXPIRED',
   TIMEOUT = 'TIMEOUT',
+  CREDIT_EXHAUSTED = 'CREDIT_EXHAUSTED',
   API_ERROR = 'API_ERROR',
 }
 
@@ -19,6 +20,7 @@ export enum GaiaErrorCode {
 export const GaiaErrorMessages = {
   [GaiaErrorCode.TIMEOUT]: `Your image generation may take longer than expected and still be running on Gaia. Please check your creation page to see the results at ${DEFAULT_GAIA_URL}/my-creations`,
   [GaiaErrorCode.SUBSCRIPTION_EXPIRED]: `Your subscription has ended. Please update to access features here: ${DEFAULT_GAIA_URL}/settings/account?tab=Plans&plan=subscription`,
+  [GaiaErrorCode.CREDIT_EXHAUSTED]: `Your GAIA CREDITS balance is not enough to generate images for this task. Please buy more CREDITS here: ${DEFAULT_GAIA_URL}/settings/account?tab=Plans&plan=credits`,
   [GaiaErrorCode.API_ERROR]: 'An error occurred while communicating with the Gaia API',
 };
 
@@ -35,6 +37,11 @@ function getGaiaErrorCode(error: Error): GaiaErrorCode {
   // Check if error is subscription expired error
   if (error.message.toLowerCase().startsWith('your subscription has ended')) {
     return GaiaErrorCode.SUBSCRIPTION_EXPIRED;
+  }
+
+  // Check if error is credit exhausted error
+  if (error.message.toLowerCase().includes('no available credits')) {
+    return GaiaErrorCode.CREDIT_EXHAUSTED;
   }
 
   // Otherwise it's an API error

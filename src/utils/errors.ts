@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-import { DEFAULT_GAIA_API_URL } from './constants.js';
+import { DEFAULT_GAIA_URL } from './constants.js';
 
 /**
  * Enumeration of error codes for Gaia API errors.
@@ -17,8 +17,8 @@ export enum GaiaErrorCode {
  * These messages provide clear instructions for users when specific errors occur.
  */
 export const GaiaErrorMessages = {
-  [GaiaErrorCode.TIMEOUT]: `Your image generation may take longer than expected and still be running on Gaia. Please check your creation page to see the results at ${DEFAULT_GAIA_API_URL}/my-creations`,
-  [GaiaErrorCode.SUBSCRIPTION_EXPIRED]: `Your subscription has ended. Please update to access features here: ${DEFAULT_GAIA_API_URL}/settings/account?tab=Plans&plan=subscription`,
+  [GaiaErrorCode.TIMEOUT]: `Your image generation may take longer than expected and still be running on Gaia. Please check your creation page to see the results at ${DEFAULT_GAIA_URL}/my-creations`,
+  [GaiaErrorCode.SUBSCRIPTION_EXPIRED]: `Your subscription has ended. Please update to access features here: ${DEFAULT_GAIA_URL}/settings/account?tab=Plans&plan=subscription`,
   [GaiaErrorCode.API_ERROR]: 'An error occurred while communicating with the Gaia API',
 };
 

@@ -1,3 +1,10 @@
+# [1.4.0-dev.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.3.1...v1.4.0-dev.1) (2025-05-20)
+
+
+### Features
+
+* enhance error handling & trigger release ([f616b9b](https://github.com/SipherAGI/gaia-mcp-server/commit/f616b9b9d001f5dcf5a5f52c4c0427d9f93c2e42))
+
 ## [1.3.1](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.3.0...v1.3.1) (2025-05-16)
 
 

@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaImageGeneratorSimpleParamsSchema } from '../../api/types.js';
-import { GaiaError } from '../../utils/errors.js';
 import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
@@ -61,18 +60,13 @@ export const generateImageTool = createTool({
     } catch (error) {
       logger.error({ error }, `Failed to generate images`);
 
-      let errorMessage = 'Unknown error occurred';
-      if (error instanceof GaiaError) {
-        errorMessage = error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
+      // Use the error message directly without adding a prefix
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to generate images: ${errorMessage}`,
+            text: errorMessage,
           },
         ],
         isError: true,

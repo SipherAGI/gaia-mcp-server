@@ -2,7 +2,6 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaFaceEnhancerParamsSchema } from '../../api/types.js';
-import { GaiaError } from '../../utils/errors.js';
 import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
@@ -53,18 +52,11 @@ export const faceEnhancerTool = createTool({
     } catch (error) {
       logger.error({ error }, `Failed to enhance face's details in the image`);
 
-      let errorMessage = 'Unknown error occurred';
-      if (error instanceof GaiaError) {
-        errorMessage = error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to enhance face's details in the image: ${errorMessage}`,
+            text: error instanceof Error ? error.message : 'Unknown error',
           },
         ],
         isError: true,

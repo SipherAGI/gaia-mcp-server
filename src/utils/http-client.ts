@@ -75,9 +75,10 @@ export class HttpClient {
 
   /**
    * Performs a GET request
+   * @template T - The expected type of the response data
    * @param url - The URL to request
    * @param config - Optional Axios request configuration
-   * @returns Promise resolving to the response data
+   * @returns Promise resolving to the response data of type T
    */
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.get<T>(url, config);
@@ -86,10 +87,12 @@ export class HttpClient {
 
   /**
    * Performs a POST request
+   * @template T - The expected type of the response data
+   * @template D - The type of the request body data
    * @param url - The URL to request
    * @param data - The data to send in the request body
    * @param config - Optional Axios request configuration
-   * @returns Promise resolving to the response data
+   * @returns Promise resolving to the response data of type T
    */
   async post<T = unknown, D = unknown>(
     url: string,
@@ -102,10 +105,12 @@ export class HttpClient {
 
   /**
    * Performs a PUT request
+   * @template T - The expected type of the response data
+   * @template D - The type of the request body data
    * @param url - The URL to request
    * @param data - The data to send in the request body
    * @param config - Optional Axios request configuration
-   * @returns Promise resolving to the response data
+   * @returns Promise resolving to the response data of type T
    */
   async put<T = unknown, D = unknown>(
     url: string,
@@ -118,9 +123,10 @@ export class HttpClient {
 
   /**
    * Performs a DELETE request
+   * @template T - The expected type of the response data
    * @param url - The URL to request
    * @param config - Optional Axios request configuration
-   * @returns Promise resolving to the response data
+   * @returns Promise resolving to the response data of type T
    */
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.axiosInstance.delete<T>(url, config);
@@ -129,10 +135,12 @@ export class HttpClient {
 
   /**
    * Performs a PATCH request
+   * @template T - The expected type of the response data
+   * @template D - The type of the request body data
    * @param url - The URL to request
    * @param data - The data to send in the request body
    * @param config - Optional Axios request configuration
-   * @returns Promise resolving to the response data
+   * @returns Promise resolving to the response data of type T
    */
   async patch<T = unknown, D = unknown>(
     url: string,
@@ -148,9 +156,20 @@ export class HttpClient {
    *
    * @param error - The axios error object
    * @private
-   * @throws GaiaError
+   * @throws GaiaError - Throws a wrapped GaiaError containing either the response error message,
+   *                    response error field, or the original axios error if no structured error data is available
    */
   private handleErrorResponse(error: AxiosError) {
+    // Extract the error from response data
+    if (error.response && error.response.data) {
+      // the response should be an object with error message
+      const err = error.response.data as { error: string; message: string };
+      if (err.message) {
+        throw new GaiaError(new Error(err.message));
+      } else if (err.error) {
+        throw new GaiaError(new Error(err.error));
+      }
+    }
     throw new GaiaError(error);
   }
 }

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { ApiClient } from '../../api/client.js';
+import { GaiaError } from '../../utils/errors.js';
 import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
@@ -63,26 +64,20 @@ export const upscalerTool = createTool({
         ],
       };
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      logger.error({ error }, `Failed to create style`);
 
-      // Check if the error is related to a timeout
-      const isTimeoutError =
-        errorMessage.toLowerCase().includes('timeout') ||
-        errorMessage.toLowerCase().includes('timed out') ||
-        (error instanceof Error && error.name === 'TimeoutError');
-
-      logger.error('Error upscaling image', { error: errorMessage });
-
-      // Provide a more informative message for timeout errors
-      const userMessage = isTimeoutError
-        ? `Error upscaling image: ${errorMessage}. Note that your image upscaling may still be running on Gaia. Please check your Gaia workspace to see the results.`
-        : `Error upscaling image: ${errorMessage}`;
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof GaiaError) {
+        errorMessage = error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
 
       return {
         content: [
           {
             type: 'text',
-            text: userMessage,
+            text: `Failed to upscale image: ${errorMessage}`,
           },
         ],
         isError: true,

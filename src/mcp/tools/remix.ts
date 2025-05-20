@@ -2,7 +2,6 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ApiClient } from '../../api/client.js';
 import { gaiaRemixParamsSchema } from '../../api/types.js';
-import { GaiaError } from '../../utils/errors.js';
 import { imageResponseToToolResult, imageResponseToText } from '../../utils/image-response.js';
 import { createLogger } from '../../utils/logger.js';
 import { createTool, ToolContext } from '../base.js';
@@ -54,18 +53,11 @@ export const remixTool = createTool({
     } catch (error) {
       logger.error({ error }, `Failed to create image variations`);
 
-      let errorMessage = 'Unknown error occurred';
-      if (error instanceof GaiaError) {
-        errorMessage = error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
       return {
         content: [
           {
             type: 'text',
-            text: `Failed to create image variations: ${errorMessage}`,
+            text: error instanceof Error ? error.message : 'Unknown error',
           },
         ],
         isError: true,

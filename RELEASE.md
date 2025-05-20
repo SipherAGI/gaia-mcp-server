@@ -31,8 +31,11 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 #### Types
 
+**Types that trigger releases:**
 - `feat`: A new feature (triggers a minor version bump)
 - `fix`: A bug fix (triggers a patch version bump)
+
+**Types that do NOT trigger releases by default:**
 - `docs`: Documentation changes
 - `style`: Changes that don't affect code functionality (formatting, etc.)
 - `refactor`: Code changes that neither fix a bug nor add a feature
@@ -101,3 +104,26 @@ The release process uses the following semantic-release plugins:
 2. Use appropriate commit types to trigger correct version bumps
 3. For breaking changes, use the `!` syntax or include `BREAKING CHANGE:` in commit message
 4. Push to the appropriate branch based on the release type
+
+## Triggering Releases Without Code Changes
+
+If you need to trigger a release without making any code changes (for example, when you've already committed all your changes but semantic-release didn't trigger a release), you can create an empty commit with the appropriate semantic commit message:
+
+```bash
+# For a patch release
+git commit --allow-empty -m "fix: trigger release"
+
+# For a minor release
+git commit --allow-empty -m "feat: trigger release"
+
+# For a major release
+git commit --allow-empty -m "feat!: trigger release"
+```
+
+After creating the empty commit, push it to the appropriate branch to trigger the release workflow:
+
+```bash
+git push origin <branch-name>
+```
+
+Note that only commits with `feat:`, `fix:`, or those with `BREAKING CHANGE:` or the `!` syntax will trigger a release. Commits with other types like `refactor:`, `chore:`, `docs:`, etc. won't trigger a release by default.

@@ -1,3 +1,10 @@
+# [1.4.0-dev.3](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2025-05-20)
+
+
+### Features
+
+* add Gaia homepage url ([daf91ee](https://github.com/SipherAGI/gaia-mcp-server/commit/daf91ee54dc0f8f0ea84c331b0c535c1eedcb9ca))
+
 # [1.4.0-dev.2](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2025-05-20)
 
 

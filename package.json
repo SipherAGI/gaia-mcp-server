@@ -1,6 +1,6 @@
 {
   "name": "@ather-mcp/gaia-mcp-server",
-  "version": "1.4.0-dev.2",
+  "version": "1.4.0-dev.3",
   "description": "MCP Server of ProtoGaia",
   "main": "index.js",
   "type": "module",

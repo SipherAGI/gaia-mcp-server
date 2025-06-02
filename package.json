@@ -22,10 +22,30 @@
       "path": "cz-conventional-changelog"
     }
   },
+  "pkg": {
+    "targets": [
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-macos-arm64",
+      "node18-win-x64"
+    ],
+    "outputPath": "releases",
+    "options": [
+      "--compress",
+      "GZip",
+      "--no-bytecode",
+      "--public-packages",
+      "*"
+    ]
+  },
   "scripts": {
     "commit": "cz",
     "clean": "rimraf dist",
     "build": "npm run clean && tsc",
+    "build:binaries": "npm run build && pkg .",
+    "build:binaries:ci": "npm run build && pkg . --compress GZip --no-bytecode --public-packages '*'",
+    "build:binaries:all": "npm run build && pkg . --targets node18-linux-x64,node18-macos-x64,node18-macos-arm64,node18-win-x64",
+    "build:test-binaries": "./scripts/build-and-test-binaries.sh",
     "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "start:sse": "node dist/index.js sse",
@@ -75,6 +95,7 @@
     "@eslint/js": "^9.24.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.3",
     "@semantic-release/npm": "^12.0.1",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
@@ -90,6 +111,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "nodemon": "^3.1.9",
+    "pkg": "^5.8.1",
     "prettier": "^3.5.3",
     "rimraf": "^5.0.5",
     "semantic-release": "^24.2.3",

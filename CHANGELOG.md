@@ -1,3 +1,10 @@
+# [1.4.0-dev.5](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2025-06-02)
+
+
+### Features
+
+* add binary release support and update documentation ([dfde742](https://github.com/SipherAGI/gaia-mcp-server/commit/dfde742e411d19d5f298993f1a692afc8a126fd5))
+
 # [1.4.0-dev.4](https://github.com/SipherAGI/gaia-mcp-server/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2025-05-20)
 
 

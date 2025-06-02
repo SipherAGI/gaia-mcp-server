@@ -6,9 +6,6 @@ An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting 
 
 - [Introduction](#introduction)
 - [Installation](#installation)
-  - [Using with npx (No Installation)](#using-with-npx-no-installation)
-  - [Global Installation](#global-installation)
-  - [Binary Releases](#binary-releases)
 - [Usage](#usage)
   - [Integrate with Claude Desktop](#integrate-with-claude-desktop)
   - [Using Stdio Method](#using-stdio-method)
@@ -56,42 +53,6 @@ gaia-mcp-server sse
 gaia-mcp-server stdio --api-key=your-api-key
 ```
 
-### Binary Releases
-
-For users who prefer standalone executables or don't have Node.js installed, we provide pre-built binaries for different platforms:
-
-1. **Download the latest binary** from the [GitHub Releases page](https://github.com/your-org/gaia-mcp-server/releases)
-2. **Choose your platform**:
-
-   - **Linux (x64)**: `gaia-mcp-server-linux-x64`
-   - **macOS (Intel)**: `gaia-mcp-server-darwin-x64`
-   - **macOS (Apple Silicon)**: `gaia-mcp-server-darwin-arm64`
-   - **Windows (x64)**: `gaia-mcp-server-win32-x64.exe`
-
-3. **Make the binary executable** (Linux/macOS only):
-
-   ```bash
-   chmod +x gaia-mcp-server-*
-   ```
-
-4. **Run the binary**:
-
-   ```bash
-   # Linux/macOS
-   ./gaia-mcp-server-linux-x64 stdio --api-key=your-api-key
-   ./gaia-mcp-server-darwin-x64 sse
-
-   # Windows
-   gaia-mcp-server-win32-x64.exe stdio --api-key=your-api-key
-   ```
-
-**Benefits of using binaries:**
-
-- ✅ No Node.js installation required
-- ✅ Self-contained executable
-- ✅ Faster startup time
-- ✅ Easier deployment in containerized environments
-
 ## Usage
 
 The server can be run in two modes: stdio or SSE. You can choose which mode to run using the command-line interface.
@@ -101,14 +62,12 @@ The server can be run in two modes: stdio or SSE. You can choose which mode to r
 You can integrate Gaia MCP Server with Claude Desktop to generate images directly in your conversations:
 
 1. **Get Your Gaia API Key**:
-
    - Log in to [Gaia's website](https://protogaia.com)
    - Go to your account settings via your profile picture
    - Navigate to the "Security" section
    - Create a new API key and copy it
 
 2. **Configure Claude Desktop**:
-
    - Open Claude Desktop
    - Go to Settings (File > Settings on Windows, Claude > Settings on Mac)
    - Click the "Developer" tab
@@ -116,7 +75,6 @@ You can integrate Gaia MCP Server with Claude Desktop to generate images directl
    - Replace the content with one of these configurations:
 
    **If you've installed the package globally**:
-
    ```json
    {
      "mcpServers": {
@@ -129,7 +87,6 @@ You can integrate Gaia MCP Server with Claude Desktop to generate images directl
    ```
 
    **If you prefer to use npx (no installation)**:
-
    ```json
    {
      "mcpServers": {

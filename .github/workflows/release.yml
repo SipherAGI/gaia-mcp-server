@@ -5,102 +5,22 @@ on:
       - main
       - release/rc
       - release/dev
-
 jobs:
-  # Build binaries for different platforms
-  build-binaries:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            target: node18-linux-x64
-          - os: macos-latest
-            platform: darwin
-            arch: x64
-            target: node18-macos-x64
-          - os: macos-latest
-            platform: darwin
-            arch: arm64
-            target: node18-macos-arm64
-          - os: windows-latest
-            platform: win32
-            arch: x64
-            target: node18-win-x64
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.PAT }}
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build project
-        run: pnpm run build
-
-      - name: Build binary
-        run: |
-          if [ "${{ matrix.platform }}" = "win32" ]; then
-            pnpm exec pkg . --target ${{ matrix.target }} --compress GZip --no-bytecode --public-packages '*' --out-path ./releases
-            mv ./releases/gaia-mcp-server.exe ./releases/gaia-mcp-server-${{ matrix.platform }}-${{ matrix.arch }}.exe
-          else
-            pnpm exec pkg . --target ${{ matrix.target }} --compress GZip --no-bytecode --public-packages '*' --out-path ./releases
-            mv ./releases/gaia-mcp-server ./releases/gaia-mcp-server-${{ matrix.platform }}-${{ matrix.arch }}
-          fi
-        shell: bash
-
-      - name: Upload binary artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: binary-${{ matrix.platform }}-${{ matrix.arch }}
-          path: ./releases/gaia-mcp-server-*
-          retention-days: 1
-
-  # Release job that depends on binary builds
   release:
-    needs: build-binaries
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build project
-        run: pnpm run build
-
-      - name: Download all binary artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: binary-*
-          merge-multiple: true
-          path: ./releases
-
-      - name: List binary files
-        run: ls -la ./releases/
-
+      - run: pnpm install
+      - run: pnpm run build
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}

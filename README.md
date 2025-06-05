@@ -1,5 +1,13 @@
 # Gaia MCP Server
 
+> **⚠️ DEPRECATED**
+>
+> This repository is deprecated and is no longer actively maintained. Please use the new Go implementation instead:
+>
+> **👉 [github.com/SipherAGI/gaia-mcp-go](https://github.com/SipherAGI/gaia-mcp-go)**
+>
+> The Go implementation provides better performance, easier installation, and active maintenance.
+
 An MCP (Model Context Protocol) server implementation for ProtoGaia, supporting both stdio and SSE (Server-Sent Events) communication methods.
 
 ## Table of Contents
@@ -62,12 +70,14 @@ The server can be run in two modes: stdio or SSE. You can choose which mode to r
 You can integrate Gaia MCP Server with Claude Desktop to generate images directly in your conversations:
 
 1. **Get Your Gaia API Key**:
+
    - Log in to [Gaia's website](https://protogaia.com)
    - Go to your account settings via your profile picture
    - Navigate to the "Security" section
    - Create a new API key and copy it
 
 2. **Configure Claude Desktop**:
+
    - Open Claude Desktop
    - Go to Settings (File > Settings on Windows, Claude > Settings on Mac)
    - Click the "Developer" tab
@@ -75,6 +85,7 @@ You can integrate Gaia MCP Server with Claude Desktop to generate images directl
    - Replace the content with one of these configurations:
 
    **If you've installed the package globally**:
+
    ```json
    {
      "mcpServers": {
@@ -87,6 +98,7 @@ You can integrate Gaia MCP Server with Claude Desktop to generate images directl
    ```
 
    **If you prefer to use npx (no installation)**:
+
    ```json
    {
      "mcpServers": {
